@@ -1,0 +1,92 @@
+Règles du serveur Discord 👐
+
+
+# Règlement du Serveur
+*Bienvenue sur notre serveur Discord ! Pour garantir un environnement sûr et agréable pour tous les membres, nous vous demandons de bien vouloir respecter scrupuleusement les règles suivantes. Toute infraction pourra entraîner des sanctions allant de l'avertissement à l'exclusion définitive, en fonction de la gravité des faits.*
+
+## 1. Respect et courtoisie ❤️
+> **Le respect est obligatoire.** *Traitez tous les membres avec courtoisie et bienveillance. Les insultes, attaques personnelles, discriminations, harcèlement ou comportements haineux ne seront pas tolérés.*
+
+> *Aucun commentaire raciste, sexiste, homophobe, transphobe, ou discriminatoire ne sera accepté.*
+
+## 2. Comportement toxique ☣️
+> **Le comportement toxique** *(provocations, mise en cause de membres, trolling, etc.) est interdit. Cela inclut également le* **spamming** *(envoi répétitif de messages) et l’utilisation de* **langage excessivement vulgaire.**
+
+> **Les conflits doivent être résolus en privé**, *ne créez pas de drama dans les canaux publics.*
+
+## 3. Contenu inapproprié 📂
+> *Ne partagez aucun contenu* **illégal, choquant, explicitement sexuel ou violent.** *Les images et vidéos à caractère explicite ou inapproprié seront immédiatement supprimées.*
+
+> *Le* **NSFW** *(Not Safe For Work) est* **strictement interdit** *sauf dans les zones spécifiquement dédiées, et sous certaines conditions clairement établies.*
+
+## 4. Publicité et spam 💬
+> **La publicité non autorisée est interdite.** *Cela inclut l’envoi de liens vers des sites externes, des serveurs Discord ou des produits sans autorisation préalable.*
+
+> **Le spam de messages** *(y compris les emojis ou caractères répétés) est interdit.*
+
+## 5. Respect des canaux 💻
+> *Utilisez les* **canaux appropriés** *pour chaque sujet. Ne mélangez pas les discussions (exemple : ne parlez pas de musique dans un canal dédié aux jeux vidéo).*
+
+> **Ne postez pas de contenu hors sujet** *dans des canaux spécifiques (exemple : pas de discussions de politique dans un canal général).*
+
+## 6. Respect de la vie privée 👀
+> **Ne partagez pas d'informations personnelles** *(vos propres informations ou celles des autres) sans consentement explicite. Cela inclut les adresses, numéros de téléphone, ou toute autre donnée privée.*
+
+> **Les photos d’autres membres**, *sans leur consentement, sont interdites. Si vous postez des photos, elles doivent être appropriées et respecter les autres membres.*
+
+## 7. Comportement vis-à-vis des modérateurs 📏
+> *Les* **modérateurs** *sont là pour assurer le bon fonctionnement du serveur. Respectez leurs décisions, ils sont habilités à appliquer les règles. En cas de désaccord, contactez un modérateur ou admin en privé.*
+
+> *Les* **abusions** *envers les modérateurs ou administrateurs (insultes, menaces, harcèlement, ping, MP abusif) entraîneront des sanctions sévères.*
+
+## 8. Interdiction des bots ou des programmes tiers 💾
+> *L’utilisation de* **bots non autorisés** *ou de tout programme qui enfreint les règles du serveur (cheat, hack, bots automatisés) est formellement interdite.*
+
+> *Tout comportement qui donne un avantage déloyal ou perturbe les autres membres sera sanctionné.*
+
+## 9. Comportement lors des événements/concours 🕵️
+> *Respectez les règles spécifiques des événements et concours. Le non-respect des règles d’un événement entraînera une disqualification immédiate.*
+
+## 10. Sanctions ⛔
+> *Toute violation des règles entraînera une sanction qui peut varier selon la gravité de l'infraction. Les sanctions peuvent aller de* **l’avertissement, à un mute temporaire, à un ban temporaire ou à un ban permanent.**
+
+> *En cas de sanction, une explication vous sera donnée. Vous avez la possibilité de contacter un modérateur pour discuter de la décision.*
+
+
+
+
+client.on('messageCreate', (message) => {
+    if (message.content === '!musique') {
+      if (message.channel.send) { // Vérification si la méthode send est disponible
+        const embed = new EmbedBuilder()
+          .setColor('#5d00ff') // Couleur de l'embed
+          .setTitle('Fonctionnement de la musique 📨')
+          .setDescription(`*<@411916947773587456> vous permet d\'écouter vos musiques préférées !*
+                \n __**Liste des commandes si dessous :**__ \n
+                * *Ajoute en playlist votre track ou le joue si aucune musique est en attente.*
+                \`\`\`*play\`\`\` \n
+                * *Met en pause votre musique.*
+                \`\`\`*pause\`\`\` \n
+                * *Permet de faire rejoindre le bot dans votre channel.*
+                \`\`\`*join\`\`\` \n
+                * *Permet de passer à la musique suivante.*
+                \`\`\`*skip\`\`\` \n
+                * *Reviens à la musique précèdentes.*
+                \`\`\`*previous\`\`\` \n
+                * *Permet de retirer toutes les musiques en attente.*
+                \`\`\`*clear\`\`\` \n
+                * *Permet d'afficher la liste des musiques en attente.*
+                \`\`\`*queue\`\`\` \n
+                **Ce salon est en mode lent, afin d'éviter le spam.**
+                *Les messages ce verront supprimé automatiquement au bout de 10 secondes !*
+                *Bonne écoute à vous !*
+        `)
+  
+        message.channel.send({ embeds: [embed] }).then(sentMessage => {
+            // Ajoute une réaction casque au message envoyé
+            sentMessage.react('<:Axon:1303396137277067416>'); // Utilisez l'ID de l'emoji ou le nom si c'est un emoji standard
+        });
+      } 
+    }
+    
+  });
