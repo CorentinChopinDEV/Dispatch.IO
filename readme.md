@@ -87,9 +87,9 @@
 ### Dependances
 - Créer un fichier .env dans votre dossier root
 > .env
-```TOKEN=
+``TOKEN=
 IDOWNER=
-GIPHY_API_KEY=```
+GIPHY_API_KEY=``
 
 - Créer un dossier guilds-data dans le dossier root
 
