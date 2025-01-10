@@ -85,14 +85,10 @@
 
 
 ### Dependances
-- Créer un fichier .env dans votre dossier root
-> .env
-``TOKEN=
-IDOWNER=
-GIPHY_API_KEY=``
-
+- Renommer le .env.example en .env
+- Ouvrir le .env
+- Compléter les API Key manquant
 - Créer un dossier guilds-data dans le dossier root
-
 - Utilisez `npm install` avec Node.JS pour installer les dépendances
 - Lancer le projet avec `node index.js`
 
