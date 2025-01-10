@@ -1,25 +1,25 @@
 # Liste des fonctions à créer
 
+## Numéro de build: Dispatch.IO -> 1.0.0
+
 ## Build
 - `slash-system` 🟢
 - `guild create` (Nouveau fichier JSON pour sauvegarder les données de la guilde) 🟢
 - `new user` (Nouvel utilisateur Discord) 🟢
-- `set presence`
-- `radio-system`
+- `set presence` 🟢
+- `radio-system` 🟢
 - `role react js` 🟢
 - `Verification ETAT JSON` 🟢
 
 ## Configurations (Config) (DEV & OWNER)
-- `/antiraid`
+- `/antiraid` ⚠️
 - `/config`
 - `/config-general` 🟢
 - `/config-color` 🟢
 - `/config-welcome` 🟢
 - `/config-language` 🟣 [Pas dans la première version]
 - `/config-rules` 🟢
-- `/config-ticket`
 - `/config-whitelist`🟢
-- `/config-radio` 
 - `/config-music` 🟣 [Pas dans la première version]
 - `/config-level`
 
@@ -39,6 +39,7 @@
 - `/role-react-add` 🟢
 - `/role-react`🟢
 - `/titre-image` 🟢
+- `/ticket-manager` 🟢
 
 ### Modérateur
 - `/ban` 🟢
@@ -79,5 +80,20 @@
 - `/reset-all` (Anciennement Fetch)
 
 ### Système
-- Réponse du mot "Pack"
+- Réponse du mot "Pack" 🟢
 - Protection des packs
+
+
+### Dependances
+- Créer un fichier .env dans votre dossier root
+> .env
+```TOKEN=
+IDOWNER=
+GIPHY_API_KEY=```
+
+- Créer un dossier guilds-data dans le dossier root
+
+- Utilisez `npm install` avec Node.JS pour installer les dépendances
+- Lancer le projet avec `node index.js`
+
+### Bon développement
