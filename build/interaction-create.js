@@ -26,7 +26,6 @@ async function interactionCREATE(interaction, client){
         if (!command) return;
         try 
         {
-            await interaction.deferReply({ ephemeral: true });
             await command.execute(interaction);
         } catch (error) {
             

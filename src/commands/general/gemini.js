@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 const fs = require('fs');
@@ -14,8 +14,6 @@ function loadGuildData(guildPath) {
             const data = fs.readFileSync(guildPath, 'utf-8');
             return JSON.parse(data);
         } else {
-            console.log(`Création d'un nouveau fichier pour la guilde ${guildPath}`);
-            return {};
         }
     } catch (err) {
         console.error('Erreur lors du chargement des données de la guilde:', err);
@@ -47,26 +45,37 @@ module.exports = {
 
     async execute(interaction) {
         const guildId = interaction.guild.id;
-        const filePath = path.join(__dirname, '../guilds-data', `${guildId}.json`);
+        const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         let guildData = loadGuildData(filePath);
 
         const question = interaction.options.getString('question');
+
+        // Envoie un message de "Chargement en cours" avant de générer la réponse
+        await interaction.reply({ content: 'Chargement en cours... <:supportscommands:1327778758337236992>', ephemeral: false });
 
         try {
             const response = await generateGeminiResponse(question);
 
             const responseEmbed = new EmbedBuilder()
-            .setTitle(`❓| ${question}`)
-            .setDescription(`## ${question} \n\n\`\`\`${response}\`\`\``)
-            .setColor(guildData.botColor || '#f40076')
-            .setFooter({
-                text: `Propulsé par Gemini (Google AI)`,
-                iconURL: interaction.guild.iconURL()
-            })
-            .setImage('https://c.tenor.com/8XNzAxRRcpUAAAAd/tenor.gif')
-            .setTimestamp();
+                .setTitle(`Gemini AI par Google <:discordearlysupporter:1327777649803788370>`)
+                .setDescription(`**La question:**\n *${question}* \n\n **Gemini à répondu:** 📨 \n${response}`)
+                .setColor(guildData.botColor || '#f40076')
+                .setFooter({
+                    text: `Propulsé par Gemini (Google AI)`,
+                    iconURL: interaction.guild.iconURL()
+                })
+                .setImage('https://c.tenor.com/8XNzAxRRcpUAAAAd/tenor.gif')
+                .setTimestamp();
 
-            await interaction.channel.send({ embeds: [responseEmbed] });
+            const actionRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setURL(`https://discord.com/oauth2/authorize?client_id=${interaction.client.user.id}&permissions=8&scope=bot%20applications.commands`)
+                        .setLabel('Inviter le bot 🩵')
+                        .setStyle(ButtonStyle.Link)
+                );
+            // Modifie le message avec l'embed une fois la réponse obtenue
+            await interaction.editReply({ content: '**Gemini vous à répondu.** 📨', embeds: [responseEmbed], components: [actionRow], });
         } catch (error) {
             console.error('Erreur lors de la génération de la réponse:', error);
             await interaction.editReply({
