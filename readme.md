@@ -67,7 +67,7 @@
 - `/giphy` 🟢
 - `/chat-gpt` 🟢
 - `/signalement` 🟢
-- `/incident-dev` 🟢
+- `/incident-report` 🟢
 - `/ping` (Affiche la latence du bot) 🟢
 - `/informations` (Affiche les informations du bot)🟢
 - `/couple`🟢

@@ -40,7 +40,7 @@ function loadGuildData(guildPath) {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('incident-dev')
+        .setName('incident-report')
         .setDescription('Signaler un problème technique au développement.')
         .addStringOption(option =>
             option
