@@ -15,7 +15,8 @@ async function handleBotJoin(guild, client) {
             joinedAt: Date.now(),
             serveurCount: guild.client.guilds.cache.size,
             whitelist: `"${ownerId}"`,
-            antiRaid: 'Actif'
+            antiRaid: 'Actif',
+            welcomeIMG: './image-base.png'
         };
 
         // Vérifier si le répertoire existe, sinon le créer

@@ -22,13 +22,14 @@ let ticketOwners = new Map();
 
 async function interactionCREATE(interaction, client){
     if (interaction.isCommand()) {
-        await checkGuildConfig(interaction.guildId, interaction);
         const command = client.commands.get(interaction.commandName);
         if (!command) return;
         try 
         {
             await command.execute(interaction);
         } catch (error) {
+            
+            await checkGuildConfig(interaction.guildId, interaction);
             console.error(error);
             await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
@@ -412,6 +413,7 @@ async function interactionCREATE(interaction, client){
         // Étape 2 : Générer la transcription
         let transcript = `Transcript de #${interaction.channel.name}\n\n`;
         for (const message of messages) {
+            if (message.author.bot) continue;
             const timestamp = message.createdAt.toLocaleString('fr-FR');
             transcript += `[${timestamp}] ${message.author.tag}: ${message.content}\n`;
             if (message.attachments.size > 0) {

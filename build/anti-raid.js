@@ -27,14 +27,13 @@ class AntiRaidSystem {
     }
 
     isWhitelisted(guildId, userId) {
-        const config = this.guildConfigs.get(guildId) || this.loadGuildConfig(guildId);
-        return config?.whitelist?.includes(Number(userId)) || false;
+        const config = this.loadGuildConfig(guildId);
+        return config?.whitelist?.includes(userId) || false;
     }
-
+    
     isAntiRaidEnabled(guildId) {
-        const config = this.guildConfigs.get(guildId) || this.loadGuildConfig(guildId);
+        const config = this.loadGuildConfig(guildId);
         return config?.antiRaid === "Actif";
-
     }
 
     async sendLog(guild, type, content, severity = 'raid') {
@@ -72,56 +71,48 @@ class AntiRaidSystem {
     }    
 
     // Anti-Spam
-    // handleMessage(message) {
-    //     if (message.author.bot) return;
-    //     if (!this.isAntiRaidEnabled(message.guild.id)) return;
-    //     if (this.isWhitelisted(message.guild.id, message.author.id)) return;
+    handleMessage(message) {
+        if (message.author.bot) return;
+        if (!this.isAntiRaidEnabled(message.guild.id)) return;
+        if (this.isWhitelisted(message.guild.id, message.author.id)) return;
     
-    //     const key = `${message.author.id}-${message.guild.id}`;
-    //     const userMessages = this.spamMap.get(key) || [];
-    //     const now = Date.now();
-        
-    //     // Filtrer les messages récents dans les 5 dernières secondes
-    //     const recentMessages = userMessages.filter(({ timestamp }) => now - timestamp < 5000);
-        
-    //     // Vérifier si le contenu du message est similaire à plus de 3 messages dans la période
-    //     const similarContent = userMessages.filter(({ content }) => 
-    //         message.content.length > 20 && 
-    //         message.content === content
-    //     ).length >= 3;
-    //     message.member.send({
-    //         embeds: [
-    //             {
-    //                 title: "⚠️ Avertissement Anti-Raid",
-    //                 description: `# <@${message.author.id}>, \n **Vous êtes en train de spammer. Votre message a été supprimé.**`,
-    //                 color: 0xff0004, // Couleur rouge pour une alerte urgente
-    //             }
-    //         ]
-    //     })
-    //     // Déclencher la sanction si 5 messages récents ou contenu similaire détecté
-    //     if (recentMessages.length >= 10) {
-    //         message.member.timeout(86400000, "Anti-Raid: SPAM detection ⚠️").catch(console.error);
-    //         message.channel.bulkDelete(recentMessages.length).catch(console.error);
-            
-    //         this.sendLog(message.guild, 'raid', {
-    //             title: 'Spam détecté',
-    //             description: `### Utilisateur <@${message.author.id}> a été sanctionné pour spam.`,
-    //             fields: [
-    //                 { name: 'Utilisateur', value: `<@${message.author.id}> \`\`${message.author.id}\`\``, inline: false },
-    //                 { name: 'Nombre de messages', value: recentMessages.length.toString(), inline: false },
-    //                 { name: 'Type de sanction', value: '**Timeout de 24 Heures**', inline: false },
-    //                 { name: 'Raison', value: '*10 messages envoyés en moins de 5 secondes ou contenu similaire détecté.*' }
-    //             ]
-    //         }, 'danger');            
-            
-    //         // Réinitialiser la liste des messages de l'utilisateur
-    //         this.spamMap.delete(key);
-    //     } else {
-    //         // Ajouter le message dans la map pour l'utilisateur
-    //         userMessages.push({ timestamp: now, content: message.content });
-    //         this.spamMap.set(key, userMessages);
-    //     }
-    // }
+        const key = `${message.author.id}-${message.guild.id}`;
+        const userMessages = this.spamMap.get(key) || [];
+        const now = Date.now();
+    
+        // Filter recent messages within the last 5 seconds
+        const recentMessages = userMessages.filter(({ timestamp }) => now - timestamp < 5000);
+
+        // If the user is detected as spamming
+        if (recentMessages.length >= 5) { // Adjusted to 5
+            message.member.send({
+                embeds: [{
+                    title: "⚠️ Avertissement Anti-Raid",
+                    description: `# <@${message.author.id}>, \n **Vous êtes en train de spammer. Votre message a été supprimé.**`,
+                    color: 0xff0004,
+                }]
+            });
+    
+            message.member.timeout(86400000, "Anti-Raid: SPAM detection ⚠️").catch(console.error);
+            message.channel.bulkDelete(recentMessages.length).catch(console.error);
+    
+            this.sendLog(message.guild, 'raid', {
+                title: 'Spam détecté',
+                description: `### Utilisateur <@${message.author.id}> a été sanctionné pour spam.`,
+                fields: [
+                    { name: 'Utilisateur', value: `<@${message.author.id}> \`\`${message.author.id}\`\``, inline: false },
+                    { name: 'Nombre de messages', value: recentMessages.length.toString(), inline: false },
+                    { name: 'Type de sanction', value: '**Timeout de 24 Heures**', inline: false },
+                    { name: 'Raison', value: '*5 messages envoyés en moins de 5 secondes ou contenu similaire détecté.*' }
+                ]
+            }, 'danger');
+    
+            this.spamMap.delete(key);
+        } else {
+            userMessages.push({ timestamp: now, content: message.content });
+            this.spamMap.set(key, userMessages);
+        }
+    }
     
     // Anti Mass Join
     handleMemberJoin(member) {
@@ -158,19 +149,33 @@ class AntiRaidSystem {
                         });
                     });
 
-                    this.sendLog(member.guild, 'raid', {
-                        title: 'Raid Détecté - Mass Join',
-                        description: suspiciousAccount ?
-                            '### Un compte suspect a rejoint (créé récemment)' :
-                            '### Plus de 5 membres ont rejoint en moins de 10 secondes.',
-                        fields: [
-                            { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
-                            { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
-                            { name: 'Membre', value: member.user.tag, inline: true },
-                            { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
-                            { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
-                        ]
-                    }, 'danger');
+                    if(suspiciousAccount){
+                        this.sendLog(member.guild, 'raid', {
+                            title: 'Raid Détecté - Compte suspect ⚠️',
+                            description:
+                                '### Un compte suspect a rejoint (créé récemment)',
+                            fields: [
+                                { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
+                                { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
+                                { name: 'Membre', value: member.user.tag, inline: true },
+                                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                                { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
+                            ]
+                        }, 'danger');
+                    }else{
+                        this.sendLog(member.guild, 'raid', {
+                            title: 'Raid Détecté - ANTI RAID ACTIF ⛔',
+                            description:
+                                '### Plus de 5 membres ont rejoint en moins de 10 secondes.',
+                            fields: [
+                                { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
+                                { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
+                                { name: 'Membre', value: member.user.tag, inline: true },
+                                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                                { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
+                            ]
+                        }, 'danger');
+                    }
             }
         }
 
@@ -337,7 +342,7 @@ class AntiRaidSystem {
             Date.now() - entry.createdTimestamp < 10000
         );
 
-        if (recentBans.size >= 3) {
+        if (recentBans.size >= 2) {
             const executor = recentBans.first().executor;
             if (!this.isWhitelisted(ban.guild.id, executor.id)) {
                 const member = await ban.guild.members.fetch(executor.id).catch(() => null);
@@ -522,9 +527,9 @@ class AntiRaidSystem {
 
     initialize(client) {
         // Gère les messages créés dans le serveur
-        // client.on(Events.MessageCreate, (message) => {
-        //     this.handleMessage(message);
-        // });
+        client.on(Events.MessageCreate, (message) => {
+            this.handleMessage(message);
+        });
     
         // Gère l'ajout d'un membre dans le serveur
         client.on(Events.GuildMemberAdd, (member) => {

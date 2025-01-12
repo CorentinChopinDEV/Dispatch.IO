@@ -24,7 +24,7 @@ export default (client) => {
     client.on('messageReactionAdd', async (reaction, user) => {
         if (user.bot) return;
         const guildId = reaction.message.guild.id;
-        const filePath = path.join(__dirname, './guilds-data', `${guildId}.json`);
+        const filePath = path.join(__dirname, '../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
         const query = 'Police Departement';
         const giphyResponse = await axios.get('https://api.giphy.com/v1/gifs/random', {
@@ -81,7 +81,7 @@ export default (client) => {
     client.on('messageReactionRemove', async (reaction, user) => {
         if (user.bot) return;
         const guildId = reaction.message.guild.id;
-        const filePath = path.join(__dirname, './guilds-data', `${guildId}.json`);
+        const filePath = path.join(__dirname, '../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
         const query = 'Police Departement';
         const giphyResponse = await axios.get('https://api.giphy.com/v1/gifs/random', {

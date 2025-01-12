@@ -1,8 +1,7 @@
-const { MessageEmbed } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs');
 const path = require('path');
-const { EmbedBuilder } = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 
 function loadGuildData(guildPath) {
     try {
@@ -23,6 +22,30 @@ async function userAdd(client, member) {
     const guildId = member.guild.id;
     const filePath = path.join(__dirname, '../guilds-data', `${guildId}.json`);
     const guildData = loadGuildData(filePath);
+    if (guildData?.raidMode === "Actif") {
+        // Si le mode raid est actif, kicker l'utilisateur
+        try {
+            console.log(`L'utilisateur ${member.id} a été kické pour mode raid actif.`);
+            
+            // Créer un embed pour informer l'utilisateur
+            const raidEmbed = new EmbedBuilder()
+                .setColor('#FF0000')  // Color red for raid mode
+                .setTitle('⛔ Mode Raid Actif')
+                .setDescription('## Votre compte a été kické du serveur car le mode raid est actuellement actif.')
+                .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmhzeXo3MG84N25pNWZycHp6eXYxMTR6cXJmdzR4anJlcGgyc2ZtcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6wNPIj7WBQcJCReE/giphy.gif')
+                .setFooter({ text: 'Le serveur est en mode de protection.' });
+
+
+            // Envoyer un MP à l'utilisateur
+            const user = await member.user;  // Récupérer l'utilisateur
+            await user.send({ embeds: [raidEmbed] });
+            await member.kick('Mode Raid Actif');
+            console.log(`Un message privé a été envoyé à l'utilisateur ${member.id}.`);
+
+        } catch (error) {
+            console.error(`Erreur lors du kick ou de l'envoi du MP à l'utilisateur ${member.id}:`, error);
+        }
+    }
 
     // Créer un canvas pour la bienvenue
     const canvas = createCanvas(700, 250);

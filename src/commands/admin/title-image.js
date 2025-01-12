@@ -37,7 +37,7 @@ module.exports = {
         const title = interaction.options.getString('titre');
 
         // Vérifier que le titre ne dépasse pas 10 caractères
-        if (title.length > 10) {
+        if (title.length > 12) {
             return interaction.reply({
                 content: 'Le titre ne peut pas dépasser 10 caractères.',
                 ephemeral: true,
@@ -79,7 +79,7 @@ module.exports = {
         );
 
         // Ajouter une couche noire semi-transparente à l'intérieur
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(
             borderThickness,
             borderThickness,
@@ -88,11 +88,11 @@ module.exports = {
         );
 
         // Ajuster la taille du texte
-        let fontSize = 70;
+        let fontSize = 60;
         if (title.length <= 5) {
-            fontSize = 80;
+            fontSize = 60;
         } else if (title.length <= 8) {
-            fontSize = 70;
+            fontSize = 60;
         }
 
         // Configurer la police du texte

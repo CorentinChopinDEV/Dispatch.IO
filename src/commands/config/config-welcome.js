@@ -63,7 +63,7 @@ module.exports = {
                 .addFields([
                     {
                         name: '**Rôles de Bienvenue**',
-                        value: guildData.welcomeRoles.length > 0
+                        value: Array.isArray(guildData.welcomeRoles) && guildData.welcomeRoles.length > 0
                             ? guildData.welcomeRoles.map(id => `<@&${id}>`).join(', ')
                             : '🔴 Aucun rôle configuré.'
                     },

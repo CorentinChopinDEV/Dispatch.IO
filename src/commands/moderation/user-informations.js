@@ -54,44 +54,32 @@ module.exports = {
         const target = interaction.options.getUser('user') || interaction.user;
         const member = interaction.guild.members.cache.get(target.id);
 
-        // Fetch les données utilisateur complètes pour obtenir la bannière
+        // Fetch les données utilisateur complètes pour obtenir la bannière et les flags
         const user = await target.fetch();
 
-        // Récupération des badges officiels Discord en utilisant bitfield
-        const badgeFlags = target.flags.bitfield;
+        // Vérifie si les flags sont disponibles (target.flags peut être null si non chargé correctement)
+        const userFlags = user.flags?.toArray() || [];
 
         // Correspondance des badges avec des icônes
         const badgeIcons = {
-        DISCORD_EMPLOYEE: '👨‍💻',
-        PARTNERED_SERVER_OWNER: '🎮',
-        HYPESQUAD_EVENTS: '🎉',
-        BUGHUNTER_LEVEL_1: '🐛',
-        HOUSE_BRAVERY: '🦁',
-        HOUSE_BRILLIANCE: '⚡',
-        HOUSE_BALANCE: '⚖️',
-        EARLY_SUPPORTER: '⏳',
-        TEAM_USER: '🧑‍🤝‍🧑',
-        BUGHUNTER_LEVEL_2: '🐛',
-        VERIFIED_BOT: '🤖',
-        VERIFIED_BOT_DEVELOPER: '👨‍💻',
+            Staff: '<:discordemployee:1327777831928860836>',
+            Partner: '<:discordpartner:1327777756414480414>',
+            Hypesquad: '<:discordhypesquad:1327777672494972948>',
+            BugHunterLevel1: '<:discordbughunterlv1:1327777776186560542>',
+            HypeSquadOnlineHouse1: '<:discordbravery:1327777580736315492>', // House of Bravery
+            HypeSquadOnlineHouse2: '<:discordbrillance:1327777598763171901>', // House of Brilliance
+            HypeSquadOnlineHouse3: '<:discordbalance:1327777740186976446>', // House of Balance
+            PremiumEarlySupporter: '<:discordearlysupporter:1327777649803788370>',
+            BugHunterLevel2: '<:discordbughunterlv2:1327777795681681560>',
+            VerifiedBot: '<:certifiedmod:1327778663378194452>',
+            VerifiedDeveloper: '<:activedeveloper:1327778740322832386>',
+            ActiveDeveloper: '<:activedeveloper:1327778740322832386>',
         };
 
-        // Vérification des badges actifs en fonction du bitfield
-        const badgesDisplay = [];
-
-        if (badgeFlags & (1 << 2)) badgesDisplay.push('HYPESQUAD_EVENTS'); // Hypesquad Events
-        if (badgeFlags & (1 << 3)) badgesDisplay.push('BUGHUNTER_LEVEL_1'); // Bug Hunter Level 1
-        if (badgeFlags & (1 << 6)) badgesDisplay.push('HOUSE_BRAVERY'); // House of Bravery
-        if (badgeFlags & (1 << 7)) badgesDisplay.push('HOUSE_BRILLIANCE'); // House of Brilliance
-        if (badgeFlags & (1 << 8)) badgesDisplay.push('HOUSE_BALANCE'); // House of Balance
-        if (badgeFlags & (1 << 9)) badgesDisplay.push('EARLY_SUPPORTER'); // Early Supporter
-        if (badgeFlags & (1 << 10)) badgesDisplay.push('TEAM_USER'); // Team User
-
         // Construction de la chaîne de badges affichée
-        const badges = badgesDisplay.length > 0 
-        ? badgesDisplay.map(badge => badgeIcons[badge]).join(' ') 
-        : 'Aucun badge';
-
+        const badges = userFlags.length > 0
+            ? userFlags.map(flag => badgeIcons[flag] || flag).join(' ')
+            : 'Aucun badge';
         // Vérification si la bannière est animée ou non
         const bannerURL = user.banner
         ? `https://cdn.discordapp.com/banners/${user.id}/${user.banner}${user.banner.startsWith('a_') ? '.gif' : ''}?size=4096${user.banner.startsWith('a_') ? '&dynamic=true' : ''}`

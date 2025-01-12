@@ -94,10 +94,14 @@ module.exports = {
                     .setLabel('Serveur Support')
                     .setStyle(ButtonStyle.Link)
                     .setURL(supportServerURL),
-            new ButtonBuilder()
+                new ButtonBuilder()
                     .setLabel('Contactez le créateur')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(`https://discord.com/users/${creatorID}`)
+                    .setURL(`https://discord.com/users/${creatorID}`),
+                new ButtonBuilder()
+                    .setLabel('Open-Source')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`https://github.com/CorentinChopinDEV/Dispatch.IO`)
             );
 
         await interaction.reply({ embeds: [embed], components: [row] });

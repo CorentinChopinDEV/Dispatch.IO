@@ -1,6 +1,6 @@
 # Liste des fonctions à créer
 
-## Numéro de build: Dispatch.IO -> 1.0.0
+## Numéro de build: Dispatch.IO -> 0.0.9 (BETA TEST)
 
 ## Build
 - `slash-system` 🟢
@@ -12,34 +12,40 @@
 - `Verification ETAT JSON` 🟢
 
 ## Configurations (Config) (DEV & OWNER)
-- `/antiraid` ⚠️
-- `/config`
+- `/antiraid` 🟢
+- `/config` 🟢
 - `/config-general` 🟢
+- `/config-raidmode` 🟢
 - `/config-color` 🟢
 - `/config-welcome` 🟢
-- `/config-language` 🟣 [Pas dans la première version]
 - `/config-rules` 🟢
 - `/config-whitelist`🟢
+- `/config-language` 🟣 [Pas dans la première version]
 - `/config-music` 🟣 [Pas dans la première version]
-- `/config-level`
+- `/config-level` 🟣 [Pas dans la première version]
 
-- `/backup` (Créer une backup du serveur) 🟣 [Pas dans la première version]
-- `/load-backup` (Charge une backup du serveur) 🟣 [Pas dans la première version]
-- `/clear-backup` (Supprime une backup) 🟣 [Pas dans la première version]
-- `/clear-serveur-backup` (Supprime tous sur un serveur pour pouvoir charger une backup) 🟣 [Pas dans la première version]
 ## Commandes
+### Owner
+- `/add-devlogs` 🟣 [Pas dans la première version]
+- `/edit-devlogs` 🟣 [Pas dans la première version]
+- `/suppr-devlogs` 🟣 [Pas dans la première version]
+- `/adding-guilds-project` 🟣 [Pas dans la première version]
 
 ### Administrateur
 - `/salon` (Lock-Unlock-Bulk) 🟢
 - `/say` 🟢
 - `/clear` 🟢
 - `/nuke` 🟢
-- `/level-reset`
 - `/embed` 🟢
 - `/role-react-add` 🟢
 - `/role-react`🟢
 - `/titre-image` 🟢
 - `/ticket-manager` 🟢
+- `/level-reset` 🟣 [Pas dans la première version]
+- `/backup` (Créer une backup du serveur) 🟣 [Pas dans la première version]
+- `/load-backup` (Charge une backup du serveur) 🟣 [Pas dans la première version]
+- `/clear-backup` (Supprime une backup) 🟣 [Pas dans la première version]
+- `/clear-serveur-backup` (Supprime tous sur un serveur pour pouvoir charger une backup) 🟣 [Pas dans la première version]
 
 ### Modérateur
 - `/ban` 🟢
@@ -56,28 +62,28 @@
 - `/invitation` (Inviter le bot sur un serveur ou un membre) 🟢
 - `/help`🟢
 - `/giphy` 🟢
-- `/chat-gpt`
+- `/chat-gpt` ❌
 - `/signalement` 🟢
 - `/ping` (Affiche la latence du bot) 🟢
-- `/informations` (Affiche les informations du bot) 🟢
+- `/informations` (Affiche les informations du bot)🟢
 - `/couple`🟢
-- `/level`
+- `/me-renommer` 🟢
+- `/level` 🟣 [Pas dans la première version]
+- `/devlogs` ❌
 
 ## Anti-Raid
-- Anti Spam
-- Anti-modifications interdites
-- Anti Raid
-- Anti Lien
-- Anti Bot Ajout
-- Anti-insultes (Mots interdits)
-- Protection double compte
+- Anti Spam 🟢
+- Anti-modifications interdites 🟢
+- Anti Raid 🟢
+- Anti Bot Ajout 🟢
+- Anti-insultes (Mots interdits) 🟣 [Pas dans la première version]
 
 ## Spécial LSPDFR French Corporation
 
 ### Commandes
-- `/noname`
-- `/restore`
-- `/reset-all` (Anciennement Fetch)
+- `/no-name` 🟢
+- `/restore-utilisateur` 🟢
+- `/reset-all` (Anciennement Fetch) ❌
 
 ### Système
 - Réponse du mot "Pack" 🟢

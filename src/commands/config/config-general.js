@@ -139,10 +139,10 @@
                                 };
 
                                 // Récupérer tous les rôles modifiables
-                                const filteredRoles = await interaction.guild.roles.fetch(); // Récupérer tous les rôles, y compris ceux qui ne sont pas dans le cache
+                                const filteredRoles = await interaction.guild.roles.fetch();
 
                                 const roles = filteredRoles
-                                    .filter(role => role.editable && role.name !== '@everyone') // Filtrer les rôles éditables
+                                    .filter(role => role.name !== '@everyone') // Filtrer les rôles éditables
                                     .map(role => ({
                                         label: role.name,
                                         value: role.id
