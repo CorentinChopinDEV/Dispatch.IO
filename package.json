@@ -11,6 +11,9 @@
   "description": "",
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
+    "@genkit-ai/ai": "^0.9.12",
+    "@genkit-ai/core": "^0.9.12",
+    "@genkit-ai/googleai": "^0.9.12",
     "@napi-rs/canvas": "^0.1.65",
     "axios": "^1.7.9",
     "axios-retry": "^4.5.0",
