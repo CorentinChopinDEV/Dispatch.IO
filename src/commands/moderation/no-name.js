@@ -75,7 +75,7 @@ module.exports = {
         }
         const utilisateur = interaction.options.getUser('utilisateur');
         const roleId = '1327822325323927552';  // Le rôle prédéfini à attribuer (à configurer dans le fichier JSON)
-        const logChannelId = guildData.logs_server_channel;  // Salon de logs pour envoyer les actions
+        const logChannelId = guildData.logs_member_channel;  // Salon de logs pour envoyer les actions
 
         if (!utilisateur) {
             return interaction.reply({

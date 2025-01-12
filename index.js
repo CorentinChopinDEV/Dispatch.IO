@@ -104,9 +104,46 @@ client.on('guildDelete', guild => {
 process.on('uncaughtException', (error) => {
     console.error('Une erreur non interceptée a été détectée :', error);
 });
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', async (reason, promise) => {
     console.error('Une promesse rejetée sans gestionnaire a été détectée :', reason);
+
+    // Vérifier si l'erreur provient d'une interaction inconnue
+    if (reason?.code === 'InteractionUnknown') {
+        console.warn('Erreur liée à une interaction inconnue détectée. Tentative de réexécution...');
+
+        const interaction = reason?.interaction; // Supposons que l'objet interaction soit dans l'erreur
+        if (interaction && interaction.commandName) {
+            try {
+                const command = interaction.client.commands.get(interaction.commandName);
+                if (!command) throw new Error('Commande introuvable.');
+
+                // Réexécuter la commande
+                await command.execute(interaction);
+                console.log(`Commande "${interaction.commandName}" réexécutée avec succès.`);
+            } catch (error) {
+                console.error('Erreur lors de la tentative de réexécution :', error);
+
+                // Envoyer un message d'erreur
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({
+                        content: '❌ Une erreur est survenue et la commande n\'a pas pu être exécutée.',
+                        ephemeral: true,
+                    });
+                } else {
+                    await interaction.reply({
+                        content: '❌ Une erreur est survenue et la commande n\'a pas pu être exécutée.',
+                        ephemeral: true,
+                    });
+                }
+            }
+        } else {
+            console.warn('Impossible de réexécuter l\'interaction : données manquantes.');
+        }
+    } else {
+        console.error('Erreur non liée à une interaction inconnue :', reason);
+    }
 });
+
 client.on('error', (error) => {
     console.error('Erreur de WebSocket détectée :', error);
 });

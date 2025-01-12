@@ -77,7 +77,7 @@ module.exports = {
         }
 
         const utilisateur = interaction.options.getUser('utilisateur');
-        const logChannelId = guildData.logs_server_channel;
+        const logChannelId = guildData.logs_member_channel;
 
         if (!utilisateur) {
             return interaction.reply({
