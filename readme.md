@@ -62,14 +62,14 @@
 - `/invitation` (Inviter le bot sur un serveur ou un membre) 🟢
 - `/help`🟢
 - `/giphy` 🟢
-- `/chat-gpt` ❌
+- `/chat-gpt` 🟢
 - `/signalement` 🟢
 - `/ping` (Affiche la latence du bot) 🟢
 - `/informations` (Affiche les informations du bot)🟢
 - `/couple`🟢
 - `/me-renommer` 🟢
 - `/level` 🟣 [Pas dans la première version]
-- `/devlogs` ❌
+- `/devlogs` 🟢
 
 ## Anti-Raid
 - Anti Spam 🟢
