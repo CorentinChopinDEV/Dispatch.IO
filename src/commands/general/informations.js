@@ -104,6 +104,6 @@ module.exports = {
                     .setURL(`https://github.com/CorentinChopinDEV/Dispatch.IO`)
             );
 
-        await interaction.reply({ embeds: [embed], components: [row] });
+        await interaction.editReply({ content: '', embeds: [embed], components: [row] });
     },
 };

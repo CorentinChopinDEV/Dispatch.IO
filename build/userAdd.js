@@ -1,7 +1,7 @@
 const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs');
 const path = require('path');
-const {EmbedBuilder} = require('discord.js');
+const {EmbedBuilder, Guild} = require('discord.js');
 
 function loadGuildData(guildPath) {
     try {
@@ -17,6 +17,16 @@ function loadGuildData(guildPath) {
         return {};
     }
 }
+
+const saveGuildData = (guildPath, newData) => {
+    try {
+        const currentData = loadGuildData(guildPath);
+        const mergedData = { ...currentData, ...newData };
+        fs.writeFileSync(guildPath, JSON.stringify(mergedData, null, 2));
+    } catch (error) {
+        console.error(`Erreur lors de la sauvegarde des données : ${error.message}`);
+    }
+};
 
 async function userAdd(client, member) {
     const guildId = member.guild.id;
@@ -44,6 +54,91 @@ async function userAdd(client, member) {
 
         } catch (error) {
             console.error(`Erreur lors du kick ou de l'envoi du MP à l'utilisateur ${member.id}:`, error);
+        }
+    }
+
+    if(member.guild.id === '1212777500565045258'){
+        const allowedCharacters = /^[a-zA-Z0-9]+$/;
+        if (!allowedCharacters.test(member.displayName)) {
+            const infractions = guildData.infractions || [];
+            infractions.push({
+                id: member.id,
+                tag: member.tag,
+                raison: 'Violation du pseudo',
+                warnedBy: 'Système Dispatch.IO',
+                type: 'Violation Pseudo',
+                date: new Date().toISOString(),
+            });
+            
+            saveGuildData(filePath, { infractions });
+            try {
+                // Renommer l'utilisateur
+                await member.setNickname('Nom à changer').catch((err) => {
+                    console.error(`Impossible de renommer l'utilisateur : ${err.message}`);
+                });
+            
+                // Retirer tous les rôles
+                await member.roles.set([]).catch((err) => {
+                    console.error(`Impossible de retirer les rôles : ${err.message}`);
+                });
+            
+                const role = member.guild.roles.cache.get('1327822325323927552');
+                if (role) {
+                    await member.roles.add(role).catch((err) => {
+                        console.error(`Impossible d'ajouter le rôle : ${err.message}`);
+                    });
+                }
+                const role2 = member.guild.roles.cache.get('1225026301870473288');
+                if (role2) {
+                    await member.roles.add(role2).catch((err) => {
+                        console.error(`Impossible d'ajouter le rôle : ${err.message}`);
+                    });
+                }
+            
+                // Envoyer un message privé à l'utilisateur
+                const dmEmbed = new EmbedBuilder()
+                    .setTitle('Modification de votre compte Discord')
+                    .setDescription('## Votre pseudo a été changé et vos rôles ont été modifiés par un administrateur, car il ne respectait pas les règles du serveur.')
+                    .addFields(
+                        { name: '🔧 Action effectuée', value: 'Votre pseudo a été réinitialisé à un nom par défaut, et le rôle "No-Name" a été attribué à votre compte.', inline: false },
+                        { name: '🔧 Action requise', value: 'Utilisez la commande sur le serveur``/me-renommer`` pour être rétabli.', inline: false },
+                        { name: '📜 Règle violée', value: 'Le pseudo ne correspondait pas aux exigences du serveur.', inline: true }
+                    )
+                    .setColor('#FF0000')
+                    .setTimestamp()
+            
+                try {
+                    await member.send({ embeds: [dmEmbed] });
+                } catch (e) {
+                    console.warn(`Impossible d'envoyer un message privé à ${member.tag}.`, e.message);
+                }
+            
+                // Log dans le salon de logs
+                const logEmbed = new EmbedBuilder()
+                    .setTitle('🔰 Action effectuée sur un utilisateur')
+                    .setDescription(`### L'utilisateur <@${member.id}> a été renommé et ses rôles ont été modifiés. Cette action a été réalisée suite à une non-conformité de son pseudo.`)
+                    .addFields(
+                        { name: '🔨 Action effectuée par', value: `Système Dispatch.IO`, inline: true },
+                        { name: '📅 Date de l\'action', value: new Date().toLocaleString(), inline: true },
+                        { name: '📝 Détails de l\'action', value: 'Renommage du pseudo et réattribution des rôles.', inline: false },
+                        { name: '🔰 Raison', value: 'Violation des règles de pseudo.', inline: false }
+                    )
+                    .setColor(guildData.botColor || '#f40076')
+                    .setTimestamp()
+                const logChannel = await member.guild.channels.fetch(guildData.logs_member_channel).catch(() => null);
+                if (logChannel) {
+                    console.log('Envoi des logs dans le canal de modération.');
+                    await logChannel.send({ embeds: [logEmbed] });
+                } else {
+                    console.warn(`Le salon logs_member_channel (${logChannelId}) n'a pas pu être trouvé.`);
+                    await interaction.reply({
+                        content: 'L\'action a été effectuée, mais le salon de logs est introuvable.',
+                        ephemeral: true,
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur lors du processus de modification :', error);
+            }
         }
     }
 

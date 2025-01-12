@@ -32,18 +32,14 @@ module.exports = {
         const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
 
-        const isOwner = guildData.ownerId === interaction.user.id;
-        const modRoleId = guildData.mod_role;
-        const hasmodRole = interaction.member.roles.cache.has(modRoleId);
-        const adminRoleId = guildData.admin_role;
-        const hasadminRole = interaction.member.roles.cache.has(adminRoleId);
-
-        // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Admin ou Mod
-        if (!isOwner && !hasadminRole && !hasmodRole) {
-            return interaction.reply({
-                content: 'Vous n\'avez pas la permission de retirer un timeout.',
-                ephemeral: true,
-            });
+        if (guildData.admin_role && guildData.ownerId) {
+            const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
+            const isOwner = guildData.ownerId === interaction.user.id;
+            if (!isAdmin && !isOwner) {
+                return interaction.reply({ content: 'Vous n\'avez pas la permission de consulter ceci.', ephemeral: true });
+            }
+        } else {
+            return interaction.reply({ content: '**Rôle administrateur non configurée ->** ``/config-general``', ephemeral: true });
         }
 
         const message = interaction.options.getString('message');

@@ -35,6 +35,6 @@ module.exports = {
             .setFooter({ text: 'Rappelle-toi, un simple bonjour peut éviter bien des ennuis.' });
 
         // Envoyer l'embed
-        await interaction.reply({ embeds: [embed], ephemeral: false });
+        await interaction.editReply({ content: '', embeds: [embed], ephemeral: false });
     },
 };

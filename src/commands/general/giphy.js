@@ -49,7 +49,7 @@ module.exports = {
             // Vérifier s'il y a des résultats
             const gifs = response.data.data;
             if (gifs.length === 0) {
-                return interaction.reply('Aucun GIF trouvé pour ce titre.');
+                return interaction.editReply('Aucun GIF trouvé pour ce titre.');
             }
 
             // Sélectionner un GIF aléatoire parmi les résultats
@@ -65,10 +65,10 @@ module.exports = {
                 .setFooter({ text: 'GIF fourni par Giphy', iconURL: 'https://media.giphy.com/media/26AOLh3CUwAPs8biU/giphy.gif' });
 
             // Répondre avec l'embed
-            return interaction.reply({ embeds: [embed] });
+            return interaction.editReply({ content: '', embeds: [embed] });
         } catch (error) {
             console.error('Erreur lors de la récupération du GIF:', error);
-            return interaction.reply('Une erreur est survenue lors de la recherche du GIF.');
+            return interaction.editReply('Une erreur est survenue lors de la recherche du GIF.');
         }
     },
 };

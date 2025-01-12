@@ -81,7 +81,7 @@
             // Vérification du format de la durée
             const timeoutDuration = parseDuration(duree);
             if (!timeoutDuration) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'La durée spécifiée est invalide. Utilisez un format comme 3s, 5m, 1d.',
                     ephemeral: true,
                 });
@@ -100,13 +100,13 @@
 
                 // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Admin ou Mod
                 if (!isOwner && !hasadminRole && !hasmodRole) {
-                    return interaction.reply({
+                    return interaction.editReply({
                         content: 'Vous n\'avez pas la permission de donner un timeout.',
                         ephemeral: true,
                     });
                 }
             } else {
-                return interaction.reply({
+                return interaction.editReply({
                     content: '**Rôle administrateur non configuré ->** `/config-general`',
                     ephemeral: true,
                 });
@@ -130,7 +130,7 @@
             try {
                 const member = await interaction.guild.members.fetch(utilisateur.id);
                 if (!member) {
-                    return interaction.reply({
+                    return interaction.editReply({
                         content: 'Impossible de trouver cet utilisateur sur le serveur.',
                         ephemeral: true,
                     });
@@ -168,7 +168,7 @@
                     .setTimestamp()
                     .setFooter({ text: 'Action effectuée par le système', iconURL: interaction.user.displayAvatarURL() });
 
-                await interaction.reply({ embeds: [successEmbed] });
+                await interaction.editReply({ content: '', embeds: [successEmbed] });
 
                 // Vérifier si le salon des logs existe
                 const logsChannelId = guildData.logs_member_channel;
@@ -191,7 +191,7 @@
 
             } catch (error) {
                 console.error('Erreur lors de l\'application du timeout :', error);
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'Une erreur est survenue lors de l\'application du timeout.',
                     ephemeral: true,
                 });

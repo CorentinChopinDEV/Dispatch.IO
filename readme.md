@@ -6,6 +6,7 @@
 - `slash-system` 🟢
 - `guild create` (Nouveau fichier JSON pour sauvegarder les données de la guilde) 🟢
 - `new user` (Nouvel utilisateur Discord) 🟢
+- Automatisme regex à l'arrivé d'un utilisateur pour noname (Seulement LSPDFR French Corporation)
 - `set presence` 🟢
 - `radio-system` 🟢
 - `role react js` 🟢
@@ -30,6 +31,7 @@
 - `/edit-devlogs` 🟣 [Pas dans la première version]
 - `/suppr-devlogs` 🟣 [Pas dans la première version]
 - `/adding-guilds-project` 🟣 [Pas dans la première version]
+- `/incidents` 🟢
 
 ### Administrateur
 - `/salon` (Lock-Unlock-Bulk) 🟢
@@ -41,6 +43,7 @@
 - `/role-react`🟢
 - `/titre-image` 🟢
 - `/ticket-manager` 🟢
+/ `/effacer-conversation` (Id départ et Id arriver) 🟢
 - `/level-reset` 🟣 [Pas dans la première version]
 - `/backup` (Créer une backup du serveur) 🟣 [Pas dans la première version]
 - `/load-backup` (Charge une backup du serveur) 🟣 [Pas dans la première version]
@@ -64,12 +67,14 @@
 - `/giphy` 🟢
 - `/chat-gpt` 🟢
 - `/signalement` 🟢
+- `/incident-dev` 🟢
 - `/ping` (Affiche la latence du bot) 🟢
 - `/informations` (Affiche les informations du bot)🟢
 - `/couple`🟢
 - `/me-renommer` 🟢
-- `/level` 🟣 [Pas dans la première version]
 - `/devlogs` 🟢
+- `/incident-dev`
+- `/level` 🟣 [Pas dans la première version]
 
 ## Anti-Raid
 - Anti Spam 🟢

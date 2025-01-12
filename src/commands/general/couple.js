@@ -129,7 +129,7 @@ module.exports = {
             imageBuffer = canvas.toBuffer();
         } catch (error) {
             console.error('Erreur lors de la conversion du canvas en buffer:', error);
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Une erreur est survenue lors de la génération de l\'image.',
                 ephemeral: true,
             });
@@ -143,12 +143,10 @@ module.exports = {
             .setColor(guildData.botColor || '#f40076')
 
         // Envoyer la réponse
-        await interaction.reply({
+        await interaction.editReply({
+            content: '',
             embeds: [embed],
             files: [{ attachment: imageBuffer, name: 'couple-image.png' }],
         });
-
-        const reactLove = await interaction.fetchReply();
-        await reactLove.react('❤️');
     },
 };

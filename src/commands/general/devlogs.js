@@ -43,7 +43,7 @@ module.exports = {
         
         // Si aucun devlog n'est trouvé
         if (devLogs.length === 0) {
-            return interaction.reply({ content: 'Aucun devlog trouvé.', ephemeral: true });
+            return interaction.editReply({ content: 'Aucun devlog trouvé.', ephemeral: true });
         }
 
         const guildId = interaction.guild.id;
@@ -65,7 +65,8 @@ module.exports = {
         });
 
         // Envoi des embeds en réponse
-        await interaction.reply({
+        await interaction.editReply({
+            content: '',
             embeds: embeds,
             ephemeral: false
         });

@@ -56,13 +56,13 @@ module.exports = {
         
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Mod ou Admin
             if (!isOwner && !hasAdminRole && !hasModRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission d\'avertir un utilisateur. 🔴',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -73,7 +73,7 @@ module.exports = {
 
         if (!utilisateur) {
             console.log('Aucun utilisateur spécifié.');
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Veuillez spécifier un utilisateur à avertir.',
                 ephemeral: true,
             });
@@ -147,19 +147,19 @@ module.exports = {
                 if (logChannel) {
                     console.log('Envoi des logs dans le canal de modération.');
                     await logChannel.send({ embeds: [logEmbed] });
-                    await interaction.reply({ embeds: [confirmWarn] });
+                    await interaction.editReply({ content: '', embeds: [confirmWarn] });
                 } else {
                     console.warn(`Le salon logs_moderation_channel (${logChannelId}) n'a pas pu être trouvé.`);
-                    await interaction.reply({ embeds: [warningEmbed] });
+                    await interaction.editReply({ content: '', embeds: [warningEmbed] });
                 }
             } else {
                 console.log('Aucun salon de logs configuré. Envoi dans l\'interaction.');
-                await interaction.reply({ embeds: [warningEmbed] });
+                await interaction.editReply({ content: '', embeds: [warningEmbed] });
             }
 
         } catch (error) {
             console.error('Erreur lors du processus d\'avertissement :', error);
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'Une erreur est survenue lors de l\'avertissement.',
                 ephemeral: true,
             });

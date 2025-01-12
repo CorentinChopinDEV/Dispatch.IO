@@ -40,13 +40,13 @@ module.exports = {
         
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
             if (!isOwner && !hasadminRole && !hasmodRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -133,6 +133,6 @@ module.exports = {
             .setURL(bannerURL || 'https://discord.com') // Lien vers la bannière si elle existe
         );
 
-        await interaction.reply({ embeds: [embed], components: [row] });
+        await interaction.editReply({ content: '', embeds: [embed], components: [row] });
     },
 };

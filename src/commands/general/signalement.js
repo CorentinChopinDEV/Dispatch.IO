@@ -36,7 +36,7 @@ module.exports = {
         const owner = await interaction.guild.fetchOwner();
 
         const embed = new EmbedBuilder()
-            .setColor('#f40076')
+            .setColor(guildData.botColor || '#f40076')
             .setTitle('📣 Nouveau Signalement')
             .setDescription(content)
             .addFields(

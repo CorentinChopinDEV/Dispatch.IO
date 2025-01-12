@@ -24,7 +24,7 @@ const saveGuildData = (guildPath, newData) => {
 
 module.exports = {
     data: {
-        name: 'no-name',
+        name: 'noname',
         description: 'Renommer un utilisateur, retirer ses rôles et lui attribuer un rôle spécifique.',
         options: [
             {
@@ -42,13 +42,13 @@ module.exports = {
         // Charger les données de la guilde
         const guildData = loadGuildData(guildPath);
         if (!guildData) {
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Données de guilde non trouvées.',
                 ephemeral: true,
             });
         }
         if(interaction.guild.id !== '1212777500565045258'){
-            return interaction.reply({
+            return interaction.editReply({
                 content: '## Cette commande n\'est pas disponible sur ce serveur. ❌',
                 ephemeral: true,
             });
@@ -62,13 +62,13 @@ module.exports = {
         
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
             if (!isOwner && !hasadminRole && !hasmodRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -78,7 +78,7 @@ module.exports = {
         const logChannelId = guildData.logs_member_channel;  // Salon de logs pour envoyer les actions
 
         if (!utilisateur) {
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Veuillez spécifier un utilisateur.',
                 ephemeral: true,
             });
@@ -87,12 +87,22 @@ module.exports = {
         const member = await interaction.guild.members.fetch(utilisateur.id);
 
         if (!member) {
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Utilisateur non trouvé dans le serveur.',
                 ephemeral: true,
             });
         }
+        const infractions = guildData.infractions || [];
+        infractions.push({
+            id: member.id,
+            tag: member.tag,
+            raison: 'Violation du pseudo',
+            warnedBy: interaction.user.id,
+            type: 'Violation Pseudo',
+            date: new Date().toISOString(),
+        });
 
+        saveGuildData(guildPath, { infractions });
         try {
             // Renommer l'utilisateur
             await member.setNickname('Nom à changer').catch((err) => {
@@ -152,27 +162,27 @@ module.exports = {
                 if (logChannel) {
                     console.log('Envoi des logs dans le canal de modération.');
                     await logChannel.send({ embeds: [logEmbed] });
-                    await interaction.reply({
-                        content: `Action sur l'utilisateur <@${utilisateur.id}> effectuée avec succès.`,
+                    await interaction.editReply({
+                        content: `### Action sur l'utilisateur <@${utilisateur.id}> effectuée avec succès. 🔰`,
                         ephemeral: true,
                     });
                 } else {
                     console.warn(`Le salon logs_member_channel (${logChannelId}) n'a pas pu être trouvé.`);
-                    await interaction.reply({
+                    await interaction.editReply({
                         content: 'L\'action a été effectuée, mais le salon de logs est introuvable.',
                         ephemeral: true,
                     });
                 }
             } else {
                 console.warn('Aucun salon de logs configuré.');
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'L\'action a été effectuée, mais aucun salon de logs n\'est configuré.',
                     ephemeral: true,
                 });
             }
         } catch (error) {
             console.error('Erreur lors du processus de modification :', error);
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'Une erreur est survenue lors de l\'exécution de la commande.',
                 ephemeral: true,
             });

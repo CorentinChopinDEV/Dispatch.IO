@@ -46,14 +46,18 @@ client.once('ready', async () => {
     await loadCommands(commandsPath, client, commands);
     await refreshCommands(client, commands);
     console.log('Bot is ready and commands are available !');
-    client.user.setPresence({
-        activities: [{
-            name: `${client.guilds.cache.size} serveurs | 📂: /help`,
-            type: ActivityType.Streaming,
-            url: "https://www.twitch.tv/codanotw",
-        }],
-        status: 'online'
-    });
+    const updatePresence = () => {
+        client.user.setPresence({         
+            activities: [{             
+                name: `${client.guilds.cache.size} serveurs | 📂: /help`,             
+                type: ActivityType.Streaming,            
+                url: "https://www.twitch.tv/codanotw",
+            }],         
+            status: 'online'     
+        });
+        setTimeout(updatePresence, 30000);  // Met à jour la présence toutes les 30 secondes
+    };
+    setTimeout(updatePresence, 100);  // Met à jour la présence toutes les 30 secondes
     setInterval(() => protectionBOTCheck(client), 30000);
     console.log('Bot is ready and commands are available !');
     console.log('Anti-Raid actif !')
@@ -108,7 +112,8 @@ process.on('unhandledRejection', async (reason, promise) => {
     console.error('Une promesse rejetée sans gestionnaire a été détectée :', reason);
 
     // Vérifier si l'erreur provient d'une interaction inconnue
-    if (reason?.code === 'InteractionUnknown') {
+    if (reason?.code === 10062) {
+
         console.warn('Erreur liée à une interaction inconnue détectée. Tentative de réexécution...');
 
         const interaction = reason?.interaction; // Supposons que l'objet interaction soit dans l'erreur

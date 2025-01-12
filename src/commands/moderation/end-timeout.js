@@ -51,13 +51,13 @@ module.exports = {
 
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Admin ou Mod
             if (!isOwner && !hasadminRole && !hasmodRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission de retirer un timeout.',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -66,7 +66,7 @@ module.exports = {
         try {
             const member = await interaction.guild.members.fetch(utilisateur.id);
             if (!member) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Impossible de trouver cet utilisateur sur le serveur.',
                     ephemeral: true,
                 });
@@ -107,7 +107,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter({ text: 'Action effectuée par le système', iconURL: interaction.user.displayAvatarURL() });
 
-            await interaction.reply({ embeds: [successEmbed] });
+            await interaction.editReply({ content: '', embeds: [successEmbed] });
 
             // Vérifier si le salon des logs existe
             const logsChannelId = guildData.logs_member_channel;
@@ -129,7 +129,7 @@ module.exports = {
             }            
         } catch (error) {
             console.error('Erreur lors du retrait du timeout :', error);
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'Une erreur est survenue lors du retrait du timeout.',
                 ephemeral: true,
             });

@@ -50,13 +50,13 @@ module.exports = {
 
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
             if (!isOwner && !hasadminRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -67,7 +67,7 @@ module.exports = {
 
         if (!utilisateur) {
             console.log('Aucun utilisateur spécifié.');
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Veuillez spécifier un utilisateur à débannir.',
                 ephemeral: true,
             });
@@ -80,7 +80,7 @@ module.exports = {
 
             if (!isBanned) {
                 console.log(`L'utilisateur ${utilisateur.tag} n'est pas banni.`);
-                return interaction.reply({
+                return interaction.editReply({
                     content: `L'utilisateur ${utilisateur.tag} n'est pas banni du serveur.`,
                     ephemeral: true,
                 });
@@ -160,18 +160,18 @@ module.exports = {
                 if (logChannel) {
                     console.log('Envoi des logs dans le canal de modération.');
                     await logChannel.send({ embeds: [logEmbed] });
-                    await interaction.reply({ embeds: [userUnbanEmbed] });
+                    await interaction.editReply({ content: '', embeds: [userUnbanEmbed] });
                 } else {
                     console.warn(`Le salon logs_moderation_channel (${logChannelId}) n'a pas pu être trouvé.`);
-                    await interaction.reply({ embeds: [userUnbanEmbed] });
+                    await interaction.editReply({ content: '', embeds: [userUnbanEmbed] });
                 }
             } else {
                 console.log('Aucun salon de logs configuré. Envoi dans l\'interaction.');
-                await interaction.reply({ embeds: [userUnbanEmbed] });
+                await interaction.editReply({ content: '', embeds: [userUnbanEmbed] });
             }
         } catch (error) {
             console.error('Erreur lors du processus de débannissement :', error);
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'Une erreur est survenue lors du débannissement. Assurez-vous que l\'utilisateur est banni et que vous avez les permissions nécessaires.',
                 ephemeral: true,
             });

@@ -17,5 +17,19 @@
             "Préparation à l'intégration du système de niveau.",
             "Ajout de Gemini AI (Google AI) au projet."
         ]
+    },
+    {
+        "date": "12-01-2025",
+        "version": "0.0.9",
+        "title": "Correctif majeur sur le bot",
+        "author": "CodanoTW",
+        "changes": [
+            "Ajout d'une commande effacer-conversation.",
+            "Ajout d'une commande incident-dev",
+            "Correctif majeur sur l'erreur Application ne répond plus.",
+            "Correctif majeur sur l'erreur Echec de l'intéraction",
+            "Ajout d'un automatisme Regex pour la LSPDFR French Corp",
+            "Ajout d'une commande incident-report (Seul owner APP)"
+        ]
     }
 ]

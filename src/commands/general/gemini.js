@@ -23,7 +23,7 @@ function loadGuildData(guildPath) {
 
 async function generateGeminiResponse(prompt) {
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
@@ -51,7 +51,6 @@ module.exports = {
         const question = interaction.options.getString('question');
 
         // Envoie un message de "Chargement en cours" avant de générer la réponse
-        await interaction.reply({ content: 'Chargement en cours... <:supportscommands:1327778758337236992>', ephemeral: false });
 
         try {
             const response = await generateGeminiResponse(question);

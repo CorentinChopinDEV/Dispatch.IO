@@ -26,6 +26,33 @@ async function interactionCREATE(interaction, client){
         if (!command) return;
         try 
         {
+            const isValidCommand = (
+                interaction.commandName !== 'creation-embed' &&
+                !interaction.commandName.includes('config') &&
+                interaction.commandName !== 'clear' &&
+                interaction.commandName !== 'effacer-conversation' &&
+                !interaction.commandName.includes('ajout-entretien') &&
+                !interaction.commandName.includes('retrait-entretien') &&
+                !interaction.commandName.includes('nuke') &&
+                !interaction.commandName.includes('role-react-add') &&
+                !interaction.commandName.includes('role-react-list') &&
+                !interaction.commandName.includes('salon') &&
+                !interaction.commandName.includes('image-titre') &&
+                !interaction.commandName.includes('ticket-manager') &&
+                !interaction.commandName.includes('help') &&
+                !interaction.commandName.includes('invitation') &&
+                !interaction.commandName.includes('me-renommer') &&
+                !interaction.commandName.includes('ping') &&
+                !interaction.commandName.includes('signalement') &&
+                !interaction.commandName.includes('infractions') &&
+                !interaction.commandName.includes('mp-utilisateur') && 
+                !interaction.commandName.includes('say')
+            );
+              
+              if (isValidCommand) {
+                  await interaction.reply({ content: '``Traitement en cours... Veuillez patienter.`` <:supportscommands:1327778758337236992>' });
+              }
+              
             await command.execute(interaction);
         } catch (error) {
             

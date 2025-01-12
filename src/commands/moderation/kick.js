@@ -56,13 +56,13 @@ module.exports = {
         
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Admin ou Mod
             if (!isOwner && !hasadminRole && !hasmodRole) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,
                 });
             }
         } else {
-            return interaction.reply({
+            return interaction.editReply({
                 content: '**Rôle administrateur non configuré ->** `/config-general`',
                 ephemeral: true,
             });
@@ -73,7 +73,7 @@ module.exports = {
 
         if (!utilisateur) {
             console.log('Aucun utilisateur spécifié.');
-            return interaction.reply({
+            return interaction.editReply({
                 content: 'Veuillez spécifier un utilisateur à expulser.',
                 ephemeral: true,
             });
@@ -95,7 +95,7 @@ module.exports = {
             const member = await interaction.guild.members.fetch(utilisateur.id).catch(() => null);
             if (!member) {
                 console.log('Utilisateur introuvable dans le serveur.');
-                return interaction.reply({
+                return interaction.editReply({
                     content: 'Impossible d\'expulser cet utilisateur car il n\'est plus dans le serveur.',
                     ephemeral: true,
                 });
@@ -160,18 +160,18 @@ module.exports = {
                 if (logChannel) {
                     console.log('Envoi des logs dans le canal de modération.');
                     await logChannel.send({ embeds: [logEmbed] });
-                    await interaction.reply({ embeds: [validateKick] });
+                    await interaction.editReply({ content: '', embeds: [validateKick] });
                 } else {
                     console.warn(`Le salon logs_moderation_channel (${logChannelId}) n'a pas pu être trouvé.`);
-                    await interaction.reply({ embeds: [userKickEmbed] });
+                    await interaction.editReply({ content: '', embeds: [userKickEmbed] });
                 }
             } else {
                 console.log('Aucun salon de logs configuré. Envoi dans l\'interaction.');
-                await interaction.reply({ embeds: [userKickEmbed] });
+                await interaction.editReply({ content: '', embeds: [userKickEmbed] });
             }
         } catch (error) {
             console.error('Erreur lors du processus d\'expulsion :', error);
-            await interaction.reply({
+            await interaction.editReply({
                 content: 'Une erreur est survenue lors de l\'expulsion. Assurez-vous que l\'utilisateur est encore dans le serveur.',
                 ephemeral: true,
             });
