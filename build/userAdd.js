@@ -191,6 +191,9 @@ async function userAdd(client, member) {
     if (serverName === 'LSPDFR French Corporation') {
         serverName = 'French Corp';
     }
+    if (serverName === 'Support | Dispatch.IO') {
+        serverName = 'Support.IO';
+    }
 
     // Ajouter le texte de bienvenue
     ctx.font = 'bold 50px Poppins'; // Police moderne pour "Bienvenue"

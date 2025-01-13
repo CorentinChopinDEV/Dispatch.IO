@@ -63,7 +63,7 @@ module.exports = {
         // Informations supplémentaires
         const botVersion = '0.0.9';
         const creatorID = '1215253116224671748';
-        const supportServerURL = 'https://discord.gg/2sJKQNQ6jj';
+        const supportServerURL = 'https://discord.gg/KpcppTQcaM';
 
         const embed = new EmbedBuilder()
             .setColor(guildData.botColor || '#f40076')

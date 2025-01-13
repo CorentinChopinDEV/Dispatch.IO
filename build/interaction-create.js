@@ -344,7 +344,7 @@ async function interactionCREATE(interaction, client){
             .setTitle('Demande d\'assistance 📨')
             .setDescription(`**Bienvenue dans votre ticket,** ${user}. \n *Un modérateur vous répondra dès qu'il sera disponible !* \n \n **Mention:** <@&${guildData.admin_role}>`)
             .setFooter({ text: 'Besoin d\'assistance - Système de Ticket' })
-            .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYW5nOHl0YjcxZTFyaTh3OHJocGR2MndodjIzcXVxbGVoZ2t4dGR1OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oz8xOrBa4FBAuFzri/giphy.gif')
+            .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGp2MXhxbTh5MmhhaWZjZ2JoZTJ1b3ppcW5zaDg5bjA5Y3BsNXFscyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VoysKcErpw9oIpI3Wu/giphy.gif')
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(

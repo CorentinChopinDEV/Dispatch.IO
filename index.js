@@ -15,6 +15,7 @@ import suggestionReact from './src/guild/french-corp/suggestion-react.js';
 import suggestion from './src/guild/french-corp/suggestion.js';
 import protectionBOTCheck from './src/guild/french-corp/douanier.js';
 import AntiRaidSystem from './build/anti-raid.js';
+import geminiText from './build/gemini-text.js';
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -210,5 +211,13 @@ async function sendLog(title, description, color) {
         console.error('Erreur lors de l\'envoi du log :', error);
     }
 }
+
+client.on('messageCreate', async (message) => {
+    try {
+        await geminiText.execute(message);
+    } catch (error) {
+        console.error('Erreur lors du traitement du message:', error);
+    }
+});
 
 client.login(process.env.TOKEN);

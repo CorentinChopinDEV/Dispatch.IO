@@ -29,7 +29,8 @@
             "Correctif majeur sur l'erreur Application ne répond plus.",
             "Correctif majeur sur l'erreur Echec de l'intéraction",
             "Ajout d'un automatisme Regex pour la LSPDFR French Corp",
-            "Ajout d'une commande incident-report (Seul owner APP)"
+            "Ajout d'une commande incident-report (Seul owner APP)",
+            "Ajout d'une fonction Gemini Prompt afin de pouvoir discuter avec l'AI"
         ]
     }
 ]

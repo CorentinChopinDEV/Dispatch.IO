@@ -83,6 +83,7 @@
                             { name: 'Salon Radio Audio', value: configData.radio_channel_audio ? `🟢 <#${configData.radio_channel_audio}>` : '🔴 Non défini', inline: true },
                             { name: 'Salon Level', value: configData.level_channel ? `🟢 <#${configData.level_channel}>` : '🔴 Non défini', inline: true },
                             { name: 'Salon Ticket', value: configData.ticket_channel ? `🟢 <#${configData.ticket_channel}>` : '🔴 Non défini', inline: true },
+                            { name: 'Salon Gemini', value: configData.gemini_channel ? `🟢 <#${configData.gemini_channel}>` : '🔴 Non défini', inline: true },
                             { name: 'Salon Logs Raid', value: configData.logs_raid_channel ? `🟢 <#${configData.logs_raid_channel}>` : '🔴 Non défini', inline: true },
                             { name: 'Salon Logs Membre', value: configData.logs_member_channel ? `🟢 <#${configData.logs_member_channel}>` : '🔴 Non défini', inline: true },
                             { name: 'Salon Logs Serveur', value: configData.logs_server_channel ? `🟢 <#${configData.logs_server_channel}>` : '🔴 Non défini', inline: true }
@@ -104,6 +105,7 @@
                         { label: 'Salon Radio Audio', description: 'Configurez le salon audio pour la radio', value: 'radio_channel_audio' },
                         { label: 'Salon Level', description: 'Configurez le salon pour les niveaux', value: 'level_channel' },
                         { label: 'Salon Ticket', description: 'Configurez le salon ticket pour ce serveur', value: 'ticket_channel' },
+                        { label: 'Salon Gemini Prompt', description: 'Configurez le salon Gemini Prompt pour ce serveur', value: 'gemini_channel' },
                         { label: 'Salon Logs Raid', description: 'Configurez le salon pour les logs raids', value: 'logs_raid_channel' },
                         { label: 'Salon Logs Membre', description: 'Configurez le salon pour les logs membres', value: 'logs_member_channel' },
                         { label: 'Salon Logs Serveur', description: 'Configurez le salon pour les logs serveur', value: 'logs_server_channel' },
@@ -253,6 +255,7 @@
                                 case 'radio_channel_audio':
                                 case 'level_channel':
                                 case 'ticket_channel':
+                                case 'gemini_channel':
                                 case 'logs_raid_channel':
                                 case 'logs_member_channel':
                                 case 'logs_server_channel':
@@ -263,6 +266,7 @@
                                         'radio_channel_audio': 'Salon audio radio',
                                         'level_channel': 'Salon de niveau',
                                         'ticket_channel': 'Salon ticket',
+                                        'gemini_channel': 'Salon Gemini Prompt',
                                         'logs_raid_channel': 'Salon des logs Raid',
                                         'logs_member_channel': 'Salon des logs membres',
                                         'logs_server_channel': 'Salon des logs serveur'
