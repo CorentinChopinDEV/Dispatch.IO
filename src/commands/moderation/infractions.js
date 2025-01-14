@@ -232,6 +232,38 @@ module.exports = {
                     }
                 });
                 return;
+            } else if (i.customId === 'next') {
+                if (currentIndex < infractions.length - 1) {
+                    currentIndex++;
+                    const updatedEmbed = generateEmbed(currentIndex);
+                    const updatedActionRow = createActionRow(currentIndex, infractions, isAdmin, isGuildOwner);
+
+                    await i.update({
+                        embeds: [updatedEmbed],
+                        components: updatedActionRow.components.length > 0 ? [updatedActionRow] : [],
+                    });
+                } else {
+                    await i.reply({
+                        content: 'Vous êtes déjà à la dernière infraction.',
+                        ephemeral: true,
+                    });
+                }
+            } else if (i.customId === 'previous') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    const updatedEmbed = generateEmbed(currentIndex);
+                    const updatedActionRow = createActionRow(currentIndex, infractions, isAdmin, isGuildOwner);
+
+                    await i.update({
+                        embeds: [updatedEmbed],
+                        components: updatedActionRow.components.length > 0 ? [updatedActionRow] : [],
+                    });
+                } else {
+                    await i.reply({
+                        content: 'Vous êtes déjà à la première infraction.',
+                        ephemeral: true,
+                    });
+                }
             }
         });
     },

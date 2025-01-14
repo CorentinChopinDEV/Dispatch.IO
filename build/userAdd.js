@@ -125,7 +125,7 @@ async function userAdd(client, member) {
                     )
                     .setColor(guildData.botColor || '#f40076')
                     .setTimestamp()
-                const logChannel = await member.guild.channels.fetch(guildData.logs_member_channel).catch(() => null);
+                const logChannel = await member.guild.channels.fetch('1328516336476880917').catch(() => null);
                 if (logChannel) {
                     console.log('Envoi des logs dans le canal de modération.');
                     await logChannel.send({ embeds: [logEmbed] });

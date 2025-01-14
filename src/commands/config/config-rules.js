@@ -192,89 +192,144 @@ module.exports = {
                             ephemeral: true
                         });
                     } else {
-                        // Création du menu déroulant pour sélectionner un rôle
-                        const roles = Array.from(
+                        const allRoles = Array.from(
                             interaction.guild.roles.cache
                                 .filter(role => role.name !== "@everyone")
-                                .values() // Récupère uniquement les valeurs de la collection
-                        )
-                        .slice(0, 25)
-                        .map(role => ({ label: role.name, value: role.id }));                        
+                                .values()
+                        );
+                        
+                        const rolesPerPage = 15;
+                        let currentPage = 0;
+                        
+                        // Fonction pour obtenir les rôles pour une page spécifique
+                        const getPaginatedRoles = (page) => {
+                            const start = page * rolesPerPage;
+                            const end = start + rolesPerPage;
+                            return allRoles.slice(start, end).map(role => ({
+                                label: role.name,
+                                value: role.id,
+                            }));
+                        };
+                        
+                        // Création des options de menu pour la première page
+                        const roleOptions = getPaginatedRoles(currentPage);
+                        
                         const roleSelectMenu = new StringSelectMenuBuilder()
                             .setCustomId('select-react-role')
                             .setPlaceholder('Choisissez un rôle...')
-                            .addOptions(roles);
-                
+                            .addOptions(roleOptions);
+                        
                         const actionRowRoleReact = new ActionRowBuilder().addComponents(roleSelectMenu);
-                
+                        
+                        // Création des boutons de pagination
+                        const navigationButtons = new ActionRowBuilder().addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('previous-page')
+                                .setLabel('Précédent')
+                                .setStyle(ButtonStyle.Primary)
+                                .setDisabled(currentPage === 0),
+                            new ButtonBuilder()
+                                .setCustomId('next-page')
+                                .setLabel('Suivant')
+                                .setStyle(ButtonStyle.Primary)
+                                .setDisabled(allRoles.length <= rolesPerPage)
+                        );
+                        
+                        // Envoi du message initial avec le menu et les boutons
                         await menuInteraction.reply({
                             content: "Veuillez sélectionner le rôle à utiliser pour la validation du règlement.",
-                            components: [actionRowRoleReact],
-                            ephemeral: true
+                            components: [actionRowRoleReact, navigationButtons],
+                            ephemeral: true,
                         });
-                
+                        
+                        // Création d'un collecteur pour les interactions
                         const roleCollector = menuInteraction.channel.createMessageComponentCollector({
-                            filter: i => i.customId === 'select-react-role' && i.user.id === interaction.user.id,
-                            time: 30000
+                            filter: i =>
+                                ['select-react-role', 'previous-page', 'next-page'].includes(i.customId) &&
+                                i.user.id === interaction.user.id,
+                            time: 60000,
                         });
-                
-                        roleCollector.on('collect', async (selectInteraction) => {
-                            const guildDataUpdated = JSON.parse(fs.readFileSync(guildPath, 'utf-8'));
-                            const selectedRoleId = selectInteraction.values[0];
+                        roleCollector.on('collect', async (i) => {
+                            if (i.customId === 'select-react-role') {
+                                const guildDataUpdated = JSON.parse(fs.readFileSync(guildPath, 'utf-8'));
+                                const selectedRoleId = i.values[0];
 
-                            // Assure-toi que l'objet `rules` existe
-                            if (!guildDataUpdated.rules) {
-                                guildDataUpdated.rules = {};
-                            }
-
-                            // Configure le rôle de validation
-                            guildDataUpdated.rules.reactRole = selectedRoleId;
-
-                            // Sauvegarde des données dans le fichier JSON
-                            fs.writeFileSync(guildPath, JSON.stringify(guildDataUpdated, null, 4));
-
-                            await selectInteraction.update({
-                                content: `✅ Le rôle <@&${selectedRoleId}> a été configuré pour la validation.`,
-                                components: []
-                            });
-
-                
-                            // Ajouter le bouton dans le salon des règles
-                            const button = new ButtonBuilder()
-                                .setCustomId('accept-rules')
-                                .setLabel('Valider le règlement')
-                                .setStyle(ButtonStyle.Success);
-                
-                            const actionRowRules = new ActionRowBuilder().addComponents(button);
-                
-                            await rulesChannel.send({
-                                components: [actionRowRules]
-                            });
-                            const guildData = JSON.parse(fs.readFileSync(guildPath, 'utf-8'));
-                            const reactRole = guildData.rules && guildData.rules.reactRole ? guildData.rules.reactRole : null;
-                            embedConfigurationRules.setFields(
-                                { 
-                                    name: "📋 Rôle de Réaction", 
-                                    value: reactRole ? `🟢 <@&${reactRole}>` : "🔴 Désactivé/Non configuré", 
-                                    inline: true 
-                                },
-                                { 
-                                    name: "📌 Statut du salon règlement", 
-                                    value: rulesChannel ? "🟢 Salon Règlement trouvé !" : "🔴 Salon Règlement non trouvé !", 
-                                    inline: true 
+                                // Assure-toi que l'objet `rules` existe
+                                if (!guildDataUpdated.rules) {
+                                    guildDataUpdated.rules = {};
                                 }
-                            )
-                
-                            await interaction.editReply({
-                                embeds: [embedConfigurationRules],
-                                components: [actionRow]
+
+                                // Configure le rôle de validation
+                                guildDataUpdated.rules.reactRole = selectedRoleId;
+
+                                // Sauvegarde des données dans le fichier JSON
+                                fs.writeFileSync(guildPath, JSON.stringify(guildDataUpdated, null, 4));
+
+                                await i.update({
+                                    content: `✅ Le rôle <@&${selectedRoleId}> a été configuré pour la validation.`,
+                                    components: []
+                                });
+
+                    
+                                // Ajouter le bouton dans le salon des règles
+                                const button = new ButtonBuilder()
+                                    .setCustomId('accept-rules')
+                                    .setLabel('Valider le règlement')
+                                    .setStyle(ButtonStyle.Success);
+                    
+                                const actionRowRules = new ActionRowBuilder().addComponents(button);
+                    
+                                await rulesChannel.send({
+                                    components: [actionRowRules]
+                                });
+                                const guildData = JSON.parse(fs.readFileSync(guildPath, 'utf-8'));
+                                const reactRole = guildData.rules && guildData.rules.reactRole ? guildData.rules.reactRole : null;
+                                embedConfigurationRules.setFields(
+                                    { 
+                                        name: "📋 Rôle de Réaction", 
+                                        value: reactRole ? `🟢 <@&${reactRole}>` : "🔴 Désactivé/Non configuré", 
+                                        inline: true 
+                                    },
+                                    { 
+                                        name: "📌 Statut du salon règlement", 
+                                        value: rulesChannel ? "🟢 Salon Règlement trouvé !" : "🔴 Salon Règlement non trouvé !", 
+                                        inline: true 
+                                    }
+                                )
+                    
+                                await interaction.editReply({
+                                    embeds: [embedConfigurationRules],
+                                    components: [actionRow]
+                                });
+                    
+                                menuInteraction.followUp({
+                                    content: `Le bouton "Valider le règlement" a été ajouté dans <#${rulesChannelId}>.`,
+                                    ephemeral: true
+                                });
+                                collector.stop(); // Arrête le collecteur après la sélection
+                            } else if (i.customId === 'previous-page') {
+                                // Page précédente
+                                currentPage = Math.max(0, currentPage - 1);
+                            } else if (i.customId === 'next-page') {
+                                // Page suivante
+                                currentPage = Math.min(
+                                    Math.ceil(allRoles.length / rolesPerPage) - 1,
+                                    currentPage + 1
+                                );
+                            }
+                        
+                            // Mise à jour des options du menu déroulant
+                            const updatedOptions = getPaginatedRoles(currentPage);
+                            roleSelectMenu.setOptions(updatedOptions);
+                        
+                            // Mise à jour des boutons
+                            navigationButtons.components[0].setDisabled(currentPage === 0);
+                            navigationButtons.components[1].setDisabled(currentPage === Math.ceil(allRoles.length / rolesPerPage) - 1);
+                        
+                            // Met à jour le message avec les nouvelles options
+                            await i.update({
+                                components: [new ActionRowBuilder().addComponents(roleSelectMenu), navigationButtons],
                             });
-                
-                            menuInteraction.followUp({
-                                content: `Le bouton "Valider le règlement" a été ajouté dans <#${rulesChannelId}>.`,
-                                ephemeral: true
-                            });
-                            collector.stop();
                         });
                 
                         roleCollector.on('end', (_, reason) => {
@@ -331,12 +386,15 @@ module.exports = {
                     try {
                         const rulesChannel = interaction.guild.channels.cache.get(guildData.rules_channel);
                         if (rulesChannel) {
-                            const messages = await rulesChannel.messages.fetch({ limit: 50 });
+                            const messages = await rulesChannel.messages.fetch({ limit: 100 });
                         
                             for (const msg of messages.values()) {
                                 if (msg.embeds.length > 0 && msg.embeds[0].title === guildData.rules.title) {
                                     await msg.delete();
                                     console.log("Embed des règles supprimé.");
+                                }
+                                if (msg.components.length > 0) {
+                                    await msg.delete();
                                 }
                             }
                         
@@ -397,7 +455,13 @@ module.exports = {
                 
                 ## 7. Comportement vis-à-vis des modérateurs 📏
                 > *Les* **modérateurs** *sont là pour assurer le bon fonctionnement du serveur. Respectez leurs décisions, ils sont habilités à appliquer les règles. En cas de désaccord, contactez un modérateur ou admin en privé.*
-                > *Les* **abusions** *envers les modérateurs ou administrateurs (insultes, menaces, harcèlement, ping, MP abusif) entraîneront des sanctions sévères.*`;
+                > *Les* **abusions** *envers les modérateurs ou administrateurs (insultes, menaces, harcèlement, ping, MP abusif) entraîneront des sanctions sévères.*
+                
+                ## 8. Interdiction des bots ou des programmes tiers 💾
+                > *L’utilisation de* **bots non autorisés** *ou de tout programme qui enfreint les règles du serveur (cheat, hack, bots automatisés) est formellement interdite.*
+                
+                ## 9. Sanctions ⛔
+                > *Toute violation des règles entraînera une sanction qui peut varier selon la gravité de l'infraction. Les sanctions peuvent aller de* **l’avertissement, à un mute temporaire, à un ban temporaire ou à un ban permanent.**`;
                     const guildDataPath = `./guilds-data/${guildId}.json`;
                     const guildData = loadGuildData(guildDataPath);
                     const rulesEmbed = new EmbedBuilder()
@@ -463,6 +527,15 @@ module.exports = {
                         const channel = interaction.guild.channels.cache.get(guildData.rules_channel);
                 
                         if (channel) {
+                            const messages = await channel.messages.fetch({ limit: 100 });
+                            for (const message of messages.values()) {
+                                if (message.embeds.length > 0 || message.components.length > 0) {
+                                    await message.delete();
+                                }
+                                if (msg.components.length > 0) {
+                                    await msg.delete();
+                                }
+                            }
                             const embed = new EmbedBuilder()
                                 .setTitle(guildData.rules.title)
                                 .setDescription(guildData.rules.description)

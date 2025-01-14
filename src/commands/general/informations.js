@@ -61,7 +61,7 @@ module.exports = {
         }
 
         // Informations supplémentaires
-        const botVersion = '0.0.9';
+        const botVersion = '0.9.2';
         const creatorID = '1215253116224671748';
         const supportServerURL = 'https://discord.gg/KpcppTQcaM';
 
@@ -101,7 +101,11 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Open-Source')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(`https://github.com/CorentinChopinDEV/Dispatch.IO`)
+                    .setURL(`https://github.com/CorentinChopinDEV/Dispatch.IO`),
+                new ButtonBuilder()
+                    .setLabel('Site internet')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`https://dispatchio.netlify.app`)
             );
 
         await interaction.editReply({ content: '', embeds: [embed], components: [row] });

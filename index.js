@@ -15,6 +15,7 @@ import suggestionReact from './src/guild/french-corp/suggestion-react.js';
 import suggestion from './src/guild/french-corp/suggestion.js';
 import protectionBOTCheck from './src/guild/french-corp/douanier.js';
 import AntiRaidSystem from './build/anti-raid.js';
+import LogSystem from './build/log-system.js';
 import geminiText from './build/gemini-text.js';
 dotenv.config();
 
@@ -34,14 +35,52 @@ const client = new Client({
     partials: [Partials.Message, Partials.Reaction, Partials.Channel]
 });
 const antiRaid = new AntiRaidSystem();
+const logSystem = new LogSystem();
 client.commands = new Collection();
 const commands = [];
 const commandsPath = path.join(__dirname, 'src/commands');
 loadCommands(commandsPath, client, commands);
 
+const TARGET_GUILD_ID = '1212777500565045258';
+const ROLE_A = '1213149429859618926';
+const ROLE_B = '1327822325323927552'
+const ROLE_C = '1225029685264519219';
+
+// Fonction pour vérifier et retirer les rôles
+async function checkAndRemoveRoles() {
+    const targetGuild = client.guilds.cache.get(TARGET_GUILD_ID);
+
+    if (!targetGuild) {
+        return;
+    }
+
+    try {
+        // Récupérer tous les membres du serveur
+        await targetGuild.members.fetch();
+
+        targetGuild.members.cache.forEach(async (member) => {
+            // Vérifie si le membre a les rôles A et B
+            if (member.roles.cache.has(ROLE_A) && member.roles.cache.has(ROLE_B)) {
+                const rolesToRemove = [ROLE_A, ROLE_C].filter(roleId =>
+                    member.roles.cache.has(roleId)
+                );
+
+                // Supprimer les rôles
+                if (rolesToRemove.length > 0) {
+                    await member.roles.remove(rolesToRemove);
+                    console.log(`Rôles retirés pour ${member.user.tag}: ${rolesToRemove.join(', ')}`);
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Une erreur s\'est produite lors de la gestion des rôles :', error);
+    }
+}
+
 // Client on Ready
 client.once('ready', async () => {
     await antiRaid.initialize(client);
+    await logSystem.initialize(client);
     await client.application.commands.set([]);
     const commands = [];
     await loadCommands(commandsPath, client, commands);
@@ -62,6 +101,8 @@ client.once('ready', async () => {
     setInterval(() => protectionBOTCheck(client), 30000);
     console.log('Bot is ready and commands are available !');
     console.log('Anti-Raid actif !')
+    setInterval(checkAndRemoveRoles, 5 * 1000);
+    
 });
 
 // Role Reaction

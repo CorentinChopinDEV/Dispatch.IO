@@ -1,36 +1,20 @@
 [
     {
-        "date": "12-01-2025",
-        "version": "0.0.9",
-        "title": "Mise à jour préparatoire vers la version 1.0.0",
+        "date": "13-01-2025",
+        "version": "0.9.2",
+        "title": "Correctif mineur sur le bot",
         "author": "CodanoTW",
         "changes": [
-            "Modifications importante sur l'execution des commandes.",
-            "Ajout de nouvelles commandes.",
-            "Anti-Raid fonctionnel et configurable.",
-            "Raid Mode fonctionnel.",
-            "Ajout des fonctions spécial pour LSPDFR French Corporation",
-            "/config fonctionnelle.",
-            "Correctif majeur sur la commande /config-whitelist",
-            "Modifications de user-informations",
-            "Gestion de nouvelle donnée de guild",
-            "Préparation à l'intégration du système de niveau.",
-            "Ajout de Gemini AI (Google AI) au projet."
-        ]
-    },
-    {
-        "date": "12-01-2025",
-        "version": "0.0.9",
-        "title": "Correctif majeur sur le bot",
-        "author": "CodanoTW",
-        "changes": [
-            "Ajout d'une commande effacer-conversation.",
-            "Ajout d'une commande incident-dev",
-            "Correctif majeur sur l'erreur Application ne répond plus.",
-            "Correctif majeur sur l'erreur Echec de l'intéraction",
-            "Ajout d'un automatisme Regex pour la LSPDFR French Corp",
-            "Ajout d'une commande incident-report (Seul owner APP)",
-            "Ajout d'une fonction Gemini Prompt afin de pouvoir discuter avec l'AI"
+            "Correction de l'incident ID 1",
+            "Correction de l'incident ID 2",
+            "Correction de l'incdent ID 3",
+            "Correction de l'incdent ID 4",
+            "Création d'une commande status",
+            "Création de la commande maintenance",
+            "Edition du système Anti-Raid, plus robuste",
+            "Edition de config-general pour acceuillir un nouveau salon LOGS",
+            "Création d'une instance LOGS complet pour les serveur.",
+            "Migration vers la 0.9.2"
         ]
     }
 ]

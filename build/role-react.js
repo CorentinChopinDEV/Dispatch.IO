@@ -70,16 +70,6 @@ export default (client) => {
         const guildId = reaction.message.guild.id;
         const filePath = path.join(__dirname, '../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
-        const query = 'Police Departement';
-        const giphyResponse = await axios.get('https://api.giphy.com/v1/gifs/random', {
-            params: {
-                api_key: env.GIPHY_API_KEY,
-                tag: query,
-                rating: 'pg',
-            },
-        });
-
-        const gifUrl = giphyResponse.data.data.images.original.url;
         let roleReactions;
         try {
             const data = fs.readFileSync(`./guilds-data/${guildId}.json`);
@@ -110,7 +100,6 @@ export default (client) => {
                     .setColor(guildData.botColor || '#f40076')
                     .setTitle('Rôle retiré 🚀')
                     .setDescription(`le rôle **${role.name}** a été retiré avec succès !`)
-                    .setImage(gifUrl)
                     .setTimestamp();
 
                 // Envoi de l'embed en message privé (DM)

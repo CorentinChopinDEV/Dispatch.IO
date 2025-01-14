@@ -178,15 +178,6 @@ class AntiRaidSystem {
                     }
             }
         }
-
-        this.sendLog(member.guild, 'server', {
-            title: 'Nouveau Membre',
-            description: `### <@${member.user.id}> a rejoint le serveur.`,
-            fields: [
-                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString() },
-                { name: 'Whitelisté', value: this.isWhitelisted(member.guild.id, member.id) ? 'Oui' : 'Non' }
-            ]
-        }, 'info');
     }
 
     // Anti Bot Add
@@ -318,15 +309,6 @@ class AntiRaidSystem {
                 
             }
         }
-
-        this.sendLog(channel.guild, 'server', {
-            title: 'Nouveau salon créer',
-            description: `### Le canal <#${channel.id}> a été créé. ⚠️`,
-            fields: [
-                { name: 'Canal', value: channel.name, inline: false },
-                { name: 'Créé par', value: `<@${executor.id}> \`\`${executor.id}\`\``, inline: false }
-            ]
-        }, 'info');
     }
 
     // Anti Mass Ban
@@ -495,33 +477,34 @@ class AntiRaidSystem {
 
         if (changes.length > 0) {
             const executor = updateLog.executor;
-            
-            if (criticalChange && !this.isWhitelisted(newGuild.id, executor.id)) {
-                const member = await newGuild.members.fetch(executor.id).catch(() => null);
-                member.roles.set([]).catch(console.error);
-                
-                if (oldGuild.name !== newGuild.name) {
-                    newGuild.setName(oldGuild.name).catch(console.error);
+            if(this.isWhitelisted(newGuild.id, executor.id) === false){
+                if (criticalChange && !this.isWhitelisted(newGuild.id, executor.id)) {
+                    const member = await newGuild.members.fetch(executor.id).catch(() => null);
+                    member.roles.set([]).catch(console.error);
+                    
+                    if (oldGuild.name !== newGuild.name) {
+                        newGuild.setName(oldGuild.name).catch(console.error);
+                    }
+                    if (oldGuild.verificationLevel !== newGuild.verificationLevel) {
+                        newGuild.setVerificationLevel(oldGuild.verificationLevel).catch(console.error);
+                    }
+                    if (oldGuild.explicitContentFilter !== newGuild.explicitContentFilter) {
+                        newGuild.setExplicitContentFilter(oldGuild.explicitContentFilter).catch(console.error);
+                    }
                 }
-                if (oldGuild.verificationLevel !== newGuild.verificationLevel) {
-                    newGuild.setVerificationLevel(oldGuild.verificationLevel).catch(console.error);
-                }
-                if (oldGuild.explicitContentFilter !== newGuild.explicitContentFilter) {
-                    newGuild.setExplicitContentFilter(oldGuild.explicitContentFilter).catch(console.error);
-                }
+    
+                this.sendLog(newGuild, 'server', {
+                    title: 'Modifications du Serveur',
+                    description: `### Modifications effectuées par <@${executor.tag}>`,
+                    fields: [
+                        ...changes.map(change => ({
+                            name: change.name,
+                            value: `${change.old} → ${change.new}`
+                        })),
+                        { name: 'Whitelisté', value: this.isWhitelisted(newGuild.id, executor.id) ? 'Oui' : 'Non' }
+                    ]
+                }, criticalChange ? 'danger' : 'warning');
             }
-
-            this.sendLog(newGuild, 'server', {
-                title: 'Modifications du Serveur',
-                description: `### Modifications effectuées par <@${executor.tag}>`,
-                fields: [
-                    ...changes.map(change => ({
-                        name: change.name,
-                        value: `${change.old} → ${change.new}`
-                    })),
-                    { name: 'Whitelisté', value: this.isWhitelisted(newGuild.id, executor.id) ? 'Oui' : 'Non' }
-                ]
-            }, criticalChange ? 'danger' : 'warning');
         }
     }
 

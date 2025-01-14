@@ -90,8 +90,8 @@ module.exports = {
                         description: 'Configurer le message de bienvenue pour les nouveaux membres.',
                     },
                     {
-                        label: '/config-rules',
-                        value: 'config-rules',
+                        label: '/config-règlement',
+                        value: 'config-règlement',
                         description: 'Configurer les règles du serveur.',
                     },
                     {
@@ -162,8 +162,8 @@ module.exports = {
                         // Commande pas encore disponible
                         await menuInteraction.reply({ content: 'Cette commande n\'est pas encore disponible.', ephemeral: true });
                         break;
-                    case 'config-rules':
-                        await interaction.client.commands.get('config-rules').execute(menuInteraction);
+                    case 'config-règlement':
+                        await interaction.client.commands.get('config-règlement').execute(menuInteraction);
                         break;
                     case 'config-whitelist':
                         await interaction.client.commands.get('config-whitelist').execute(menuInteraction);

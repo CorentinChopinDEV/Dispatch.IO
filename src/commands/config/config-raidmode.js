@@ -27,7 +27,7 @@ function saveGuildData(guildPath, data) {
 
 module.exports = {
     data: {
-        name: 'config-raidmode',
+        name: 'raidmode',
         description: 'Configurer le mode Raid du serveur.',
     },
     async execute(interaction) {

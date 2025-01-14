@@ -27,7 +27,7 @@ function saveGuildData(guildPath, data) {
 
 module.exports = {
     data: {
-        name: 'config-antiraid',
+        name: 'antiraid',
         description: 'Configurer le système Anti-Raid.',
     },
     async execute(interaction) {

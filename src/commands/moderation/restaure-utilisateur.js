@@ -77,7 +77,7 @@ module.exports = {
         }
 
         const utilisateur = interaction.options.getUser('utilisateur');
-        const logChannelId = guildData.logs_member_channel;
+        const logChannelId = '1328516336476880917';
 
         if (!utilisateur) {
             return interaction.editReply({
@@ -121,14 +121,13 @@ module.exports = {
 
             const memberRole = interaction.guild.roles.cache.get(memberRoleId);
             const restrictedRole = interaction.guild.roles.cache.get(restrictedRoleId);
-            if (interaction.member.roles.cache.has(restrictedRoleId)) {
+            if (member.roles.cache.has(restrictedRoleId)) {
                 console.log(`L'utilisateur possède déjà le rôle ${restrictedRole.name}, rôle ${memberRole.name} non attribué.`);
-            } else if (memberRole) {
-                await interaction.member.roles.add(memberRole).catch((err) => {
+            } else {
+                await member.roles.add(memberRole).catch((err) => {
                     console.error(`Impossible d'ajouter le rôle membre : ${err.message}`);
                 });
-            } else {
-                console.error('Le rôle à attribuer est introuvable.');
+                console.log('Role membre ajouter.')
             }
             const memberRoleId2 = '1325901504518815784'
             const memberRole2 = interaction.guild.roles.cache.get(memberRoleId2);

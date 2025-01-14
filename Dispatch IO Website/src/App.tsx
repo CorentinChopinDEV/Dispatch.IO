@@ -395,16 +395,16 @@ function App() {
               <ul className="space-y-2 text-gray-400">
                 <li><button onClick={() => setActivePage('home')} className="hover:text-[#f40076]">Accueil</button></li>
                 <li><button onClick={() => setActivePage('docs')} className="hover:text-[#f40076]">Documentation</button></li>
-                <li><a href="#" className="hover:text-[#f40076]">Status</a></li>
+                <li><a href="https://discord.gg/JP63qwaSzk" className="hover:text-[#f40076]">Status</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-[#f40076]">FAQ</a></li>
-                <li><a href="#" className="hover:text-[#f40076]">Contact</a></li>
-                <li><a href="#" className="hover:text-[#f40076]">Serveur Discord</a></li>
+                <li><a href="https://discord.gg/JP63qwaSzk" className="hover:text-[#f40076]">FAQ</a></li>
+                <li><a href="https://discord.gg/JP63qwaSzk" className="hover:text-[#f40076]">Contact</a></li>
+                <li><a href="https://discord.gg/JP63qwaSzk" className="hover:text-[#f40076]">Serveur Discord</a></li>
               </ul>
             </div>
             
@@ -414,7 +414,7 @@ function App() {
                 <a href="https://github.com/CorentinChopinDEV/Dispatch.IO" className="text-gray-400 hover:text-[#f40076]">
                   <Github className="w-6 h-6" />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-[#f40076]">
+                <a href="https://discord.gg/JP63qwaSzk" className="text-gray-400 hover:text-[#f40076]">
                   <MessageCircle className="w-6 h-6" />
                 </a>
               </div>
