@@ -14,7 +14,9 @@
             "Edition du système Anti-Raid, plus robuste",
             "Edition de config-general pour acceuillir un nouveau salon LOGS",
             "Création d'une instance LOGS complet pour les serveur.",
-            "Migration vers la 0.9.2"
+            "Migration vers la 0.9.2",
+            "Ajout et mise en ligne du site internet.",
+            "Création d'une commande site-internet afin d'accèder à celui-ci."
         ]
     }
 ]
