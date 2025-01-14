@@ -128,7 +128,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
         }
 
         try {
-            const confirmation = await response.awaitMessageComponent({ time: 240000 });
+            const confirmation = await response.awaitMessageComponent({ time: 1000000 });
 
             if (confirmation.customId === 'cancel_restore') {
                 await confirmation.update({ 
@@ -149,7 +149,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
             const progressEmbed = new EmbedBuilder()
                 .setColor('#FFA500')
                 .setTitle('<a:28213ttsloading:1328488543726866553> Restauration en cours')
-                .setDescription('Initialisation de la restauration... 1️⃣')
+                .setDescription('14% - Initialisation de la restauration... 1️⃣')
                 .setTimestamp();
 
             const statusMessage = await interaction.channel.send({
@@ -168,7 +168,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
             };
 
             // Mise à jour des permissions @everyone
-            await updateProgress('Mise à jour des permissions @everyone... 2️⃣');
+            await updateProgress('28% - Mise à jour des permissions @everyone... 2️⃣');
             const everyoneRole = interaction.guild.roles.everyone;
             const everyoneData = backupData.roles.find(r => r.name === '@everyone');
             if (everyoneData) {
@@ -195,7 +195,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
                 }
             }
 
-            await updateProgress('Suppression des salons existants... 4️⃣');
+            await updateProgress('42% - Suppression des salons existants... 4️⃣');
             for (const channel of interaction.guild.channels.cache.values()) {
                 // Vérification pour ne pas supprimer le salon de l'interaction
                 if (channel.id !== interaction.channel.id) {
@@ -209,7 +209,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
                 }
             }
 
-            await updateProgress('Création des nouveaux rôles... 5️⃣');
+            await updateProgress('56% - Création des nouveaux rôles... 5️⃣');
             const roleMap = new Map();
             roleMap.set(everyoneData.id, everyoneRole.id);
 
@@ -245,7 +245,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
                 
 
             // Création des catégories
-            await updateProgress('Création des catégories... 5️⃣');
+            await updateProgress('70% - Création des catégories... 5️⃣');
             const categories = new Map();
             const categoryChannels = backupData.channels
                 .filter(c => c.type === ChannelType.GuildCategory)
@@ -273,7 +273,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
             }
 
             // Création des autres salons
-            await updateProgress('Création des salons... 6️⃣');
+            await updateProgress('84% - Création des salons... 6️⃣');
             const nonCategoryChannels = backupData.channels
                 .filter(c => c.type !== ChannelType.GuildCategory)
                 .sort((a, b) => a.position - b.position);
@@ -307,7 +307,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
             // Message de succès
             const successEmbed = new EmbedBuilder()
             .setColor('#f40076')
-            .setTitle('✅ **Restauration Terminée avec Succès**')
+            .setTitle('✅ **Restauration Terminée avec Succès [100%]**')
             .setDescription('Le serveur a été restauré avec succès à partir de la sauvegarde. 🎉\n\nTous les salons et rôles ont été restaurés conformément à la sauvegarde fournie.')
             .addFields(
                 { name: '🔧 Détails', value: 'Les configurations du serveur ont été mises à jour, y compris les salons, les rôles et les permissions.' },
