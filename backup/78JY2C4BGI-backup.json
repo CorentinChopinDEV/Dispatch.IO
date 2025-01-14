@@ -1,0 +1,1162 @@
+{
+    "guildId": "1322898318233178122",
+    "guildName": "Support | Dispatch.IO",
+    "ownerId": "1215253116224671748",
+    "createdAt": "2024-12-29T12:05:37.329Z",
+    "roles": [
+        {
+            "id": "1322898318233178122",
+            "name": "@everyone",
+            "color": "#000000",
+            "hoist": false,
+            "position": 0,
+            "permissions": "2222085186637377",
+            "mentionable": false
+        },
+        {
+            "id": "1327747442174591048",
+            "name": "ஐ Member",
+            "color": "#8dc2e4",
+            "hoist": true,
+            "position": 2,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1327886018308735017",
+            "name": "ஐ Support",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 12,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1327886101691502613",
+            "name": "ஐ Moderator",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 13,
+            "permissions": "1101889806342",
+            "mentionable": false
+        },
+        {
+            "id": "1327886322714804306",
+            "name": "ஐ Administator",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 14,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1327886351248523285",
+            "name": "ஐ Leader Staff",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 15,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1327887853828575253",
+            "name": "ஐ Dev Junior",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 16,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1327887963253772390",
+            "name": "ஐ Guildness validate",
+            "color": "#8dc2e4",
+            "hoist": true,
+            "position": 3,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1327982059049844809",
+            "name": "ஐ Staff",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 11,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328174177840140381",
+            "name": "ஐ Créator",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 18,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1328174312804585566",
+            "name": "ஐ Dev Senior",
+            "color": "#f40076",
+            "hoist": true,
+            "position": 17,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1328176025695158303",
+            "name": "ஐ Developer",
+            "color": "#91fb70",
+            "hoist": true,
+            "position": 6,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328176033287110764",
+            "name": "ஐ User Bot",
+            "color": "#91fb70",
+            "hoist": true,
+            "position": 5,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328176037082828850",
+            "name": "ஐ Content creator",
+            "color": "#91fb70",
+            "hoist": true,
+            "position": 7,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328176387865186324",
+            "name": "ஐ Partner",
+            "color": "#91fb70",
+            "hoist": true,
+            "position": 8,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328176796922941471",
+            "name": "ஐ GIT Contributor",
+            "color": "#91fb70",
+            "hoist": true,
+            "position": 9,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328178159350321162",
+            "name": "════════════════════════",
+            "color": "#f40076",
+            "hoist": false,
+            "position": 20,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328178391026765976",
+            "name": "════════════════════════",
+            "color": "#91fb70",
+            "hoist": false,
+            "position": 10,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328178404150743071",
+            "name": "════════════════════════",
+            "color": "#8dc2e4",
+            "hoist": false,
+            "position": 1,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328178449013014579",
+            "name": "════════════════════════",
+            "color": "#8dc2e4",
+            "hoist": false,
+            "position": 4,
+            "permissions": "0",
+            "mentionable": false
+        },
+        {
+            "id": "1328189644608901184",
+            "name": "ஐ Dispatch.IO",
+            "color": "#f40076",
+            "hoist": false,
+            "position": 19,
+            "permissions": "8",
+            "mentionable": false
+        },
+        {
+            "id": "1328565072766697554",
+            "name": "DEV.IO",
+            "color": "#000000",
+            "hoist": false,
+            "position": 21,
+            "permissions": "8",
+            "mentionable": false
+        }
+    ],
+    "channels": [
+        {
+            "id": "1327746407981125714",
+            "name": "🎧┇Radio",
+            "type": 2,
+            "parent": "1327744839684456540",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "286422815804993",
+                    "deny": "1812543606026512"
+                }
+            ]
+        },
+        {
+            "id": "1328184377091293285",
+            "name": "🤖┇gemini-prompt",
+            "type": 0,
+            "parent": "1327739251089080380",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "68673",
+                    "deny": "2098966421762832"
+                }
+            ]
+        },
+        {
+            "id": "1327738767020265513",
+            "name": "💡┇suggest",
+            "type": 0,
+            "parent": "1327737550424641609",
+            "position": 4,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "309237763137",
+                    "deny": "2098657184068368"
+                }
+            ]
+        },
+        {
+            "id": "1328187060514983976",
+            "name": "🔰┇Vocal Staff 1",
+            "type": 2,
+            "parent": "1327741884382183495",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "849374916759104",
+                    "deny": "1249591505072401"
+                }
+            ]
+        },
+        {
+            "id": "1327734267467403334",
+            "name": "📢┇change-logs",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 6,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1327745759734399017",
+            "name": "🤖┇commandes",
+            "type": 0,
+            "parent": "1327739251089080380",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "2147552321",
+                    "deny": "2098964274279184"
+                }
+            ]
+        },
+        {
+            "id": "1327734805072449547",
+            "name": "📣┇annoucement",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66625",
+                    "deny": "2098966421764880"
+                }
+            ]
+        },
+        {
+            "id": "1327738203708325940",
+            "name": "🔍┇faq",
+            "type": 0,
+            "parent": "1327737550424641609",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "309237763137",
+                    "deny": "2098657184068368"
+                }
+            ]
+        },
+        {
+            "id": "1328188875830722590",
+            "name": "💻┇git-contributor",
+            "type": 0,
+            "parent": "1328188624436461672",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1328176796922941471",
+                    "type": 0,
+                    "allow": "117824",
+                    "deny": "1760303889395729"
+                }
+            ]
+        },
+        {
+            "id": "1328186991451574315",
+            "name": "🔰┇chat-staff",
+            "type": 0,
+            "parent": "1327741884382183495",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "848823013461568",
+                    "deny": "1250143408369937"
+                }
+            ]
+        },
+        {
+            "id": "1327734077876473947",
+            "name": "📖┇guildness",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327747442174591048",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1327731473205166150",
+            "name": "💻 Informations",
+            "type": 4,
+            "parent": null,
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                },
+                {
+                    "id": "1327747442174591048",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1327745699323842683",
+            "name": "📷┇media",
+            "type": 0,
+            "parent": "1327739251089080380",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "117825",
+                    "deny": "2098966421713680"
+                }
+            ]
+        },
+        {
+            "id": "1327737945943310497",
+            "name": "📊┇status",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 4,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                },
+                {
+                    "id": "1327747442174591048",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1328188624436461672",
+            "name": "📂 Personal",
+            "type": 4,
+            "parent": null,
+            "position": 4,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                }
+            ]
+        },
+        {
+            "id": "1327740321060356157",
+            "name": "🐞┇bugs-resolve",
+            "type": 15,
+            "parent": "1327737550424641609",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "309237763137",
+                    "deny": "2098657184068368"
+                }
+            ]
+        },
+        {
+            "id": "1327746987583606835",
+            "name": "🔊┇Vocal 3",
+            "type": 2,
+            "parent": "1327744839684456540",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "286422815804993",
+                    "deny": "1812543606026512"
+                }
+            ]
+        },
+        {
+            "id": "1327737279099441302",
+            "name": "🎨┇partners",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 8,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1328540793350258828",
+            "name": "🪟┇modifications",
+            "type": 0,
+            "parent": "1328187822590394368",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        },
+        {
+            "id": "1327744839684456540",
+            "name": "🎤 Voice",
+            "type": 4,
+            "parent": null,
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "286422815804993",
+                    "deny": "1812543606026512"
+                }
+            ]
+        },
+        {
+            "id": "1327740168995606620",
+            "name": "🚨┇community-support",
+            "type": 15,
+            "parent": "1327737550424641609",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "309237763137",
+                    "deny": "2098657184068368"
+                }
+            ]
+        },
+        {
+            "id": "1327745475155333261",
+            "name": "💬┇chat",
+            "type": 0,
+            "parent": "1327739251089080380",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "68673",
+                    "deny": "2098966421762832"
+                }
+            ]
+        },
+        {
+            "id": "1328186803454349342",
+            "name": "🔰┇guildness-staff",
+            "type": 0,
+            "parent": "1327741884382183495",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "285873059988992",
+                    "deny": "1813093361842513"
+                }
+            ]
+        },
+        {
+            "id": "1328187822590394368",
+            "name": "🔰 LOGS",
+            "type": 4,
+            "parent": null,
+            "position": 7,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        },
+        {
+            "id": "1327982459907997696",
+            "name": "📂 Tickets",
+            "type": 4,
+            "parent": null,
+            "position": 5,
+            "permissionOverwrites": []
+        },
+        {
+            "id": "1327737550424641609",
+            "name": "🦺 Support",
+            "type": 4,
+            "parent": null,
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "309237763137",
+                    "deny": "2098657184068368"
+                }
+            ]
+        },
+        {
+            "id": "1328187124901744710",
+            "name": "🔰┇Vocal Staff 3",
+            "type": 2,
+            "parent": "1327741884382183495",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "849374916759104",
+                    "deny": "1249591505072401"
+                }
+            ]
+        },
+        {
+            "id": "1327746337449443348",
+            "name": "📻┇radio",
+            "type": 0,
+            "parent": "1327744839684456540",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "285873059988993",
+                    "deny": "1813093361842512"
+                }
+            ]
+        },
+        {
+            "id": "1327733753774346391",
+            "name": "👋┇welcome",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327747442174591048",
+                    "type": 0,
+                    "allow": "66625",
+                    "deny": "2098966421764880"
+                }
+            ]
+        },
+        {
+            "id": "1328188833631830026",
+            "name": "💻┇developer",
+            "type": 0,
+            "parent": "1328188624436461672",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1328176025695158303",
+                    "type": 0,
+                    "allow": "117824",
+                    "deny": "1760303889395729"
+                }
+            ]
+        },
+        {
+            "id": "1327746904016289934",
+            "name": "🔊┇Vocal 1",
+            "type": 2,
+            "parent": "1327744839684456540",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "286422815804993",
+                    "deny": "1812543606026512"
+                }
+            ]
+        },
+        {
+            "id": "1328260716607569950",
+            "name": "📢┇incidents",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 5,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1328186723741597808",
+            "name": "🔰┇annoucement",
+            "type": 0,
+            "parent": "1327741884382183495",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "285873059988992",
+                    "deny": "1813093361842513"
+                }
+            ]
+        },
+        {
+            "id": "1328187101488877598",
+            "name": "🔰┇Vocal Staff 2",
+            "type": 2,
+            "parent": "1327741884382183495",
+            "position": 1,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "849374916759104",
+                    "deny": "1249591505072401"
+                }
+            ]
+        },
+        {
+            "id": "1328188254595448933",
+            "name": "🪟┇sanctions",
+            "type": 0,
+            "parent": "1328187822590394368",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        },
+        {
+            "id": "1327735150871842857",
+            "name": "🌍┇roles",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 7,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1328185262605598830",
+            "name": "🔰┇discord-bug",
+            "type": 0,
+            "parent": null,
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "3072",
+                    "deny": "1760303889510481"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                }
+            ]
+        },
+        {
+            "id": "1327741884382183495",
+            "name": "🔰 Staff",
+            "type": 4,
+            "parent": null,
+            "position": 6,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "849374916759104",
+                    "deny": "1249591505072401"
+                }
+            ]
+        },
+        {
+            "id": "1328188281275420764",
+            "name": "🪟┇server",
+            "type": 0,
+            "parent": "1328187822590394368",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        },
+        {
+            "id": "1328191848446955530",
+            "name": "🪟┇introduction",
+            "type": 0,
+            "parent": "1327731473205166150",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "2098966421831505"
+                },
+                {
+                    "id": "1327747442174591048",
+                    "type": 0,
+                    "allow": "66561",
+                    "deny": "2098966421764944"
+                }
+            ]
+        },
+        {
+            "id": "1328229791631020163",
+            "name": "🔰┇ticket-sauvegarde",
+            "type": 0,
+            "parent": "1327741884382183495",
+            "position": 4,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "285873059922432",
+                    "deny": "1813093361909073"
+                }
+            ]
+        },
+        {
+            "id": "1327739251089080380",
+            "name": "🪟 Community",
+            "type": 4,
+            "parent": null,
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "2147601473",
+                    "deny": "2098964274230032"
+                }
+            ]
+        },
+        {
+            "id": "1328186922228645888",
+            "name": "🔰┇commands-moderator",
+            "type": 0,
+            "parent": "1327741884382183495",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "285875207474688",
+                    "deny": "1813091214356817"
+                }
+            ]
+        },
+        {
+            "id": "1327746951722045554",
+            "name": "🔊┇Vocal 2",
+            "type": 2,
+            "parent": "1327744839684456540",
+            "position": 2,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327887963253772390",
+                    "type": 0,
+                    "allow": "286422815804993",
+                    "deny": "1812543606026512"
+                }
+            ]
+        },
+        {
+            "id": "1327739977680945323",
+            "name": "🎫┇ticket",
+            "type": 0,
+            "parent": "1327737550424641609",
+            "position": 0,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        },
+        {
+            "id": "1328188313777213592",
+            "name": "🪟┇anti-raid",
+            "type": 0,
+            "parent": "1328187822590394368",
+            "position": 3,
+            "permissionOverwrites": [
+                {
+                    "id": "1322898318233178122",
+                    "type": 0,
+                    "allow": "0",
+                    "deny": "805307408"
+                },
+                {
+                    "id": "1327982059049844809",
+                    "type": 0,
+                    "allow": "66560",
+                    "deny": "2098966421764945"
+                }
+            ]
+        }
+    ],
+    "token": "78JY2C4BGI"
+}

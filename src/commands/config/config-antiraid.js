@@ -40,11 +40,12 @@ module.exports = {
         const guildData = loadGuildData(guildPath);
         if (guildData.ownerId) {
             const isOwner = guildData.ownerId === interaction.user.id;
+            const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
             const devRoleId = guildData.dev_role; // ID du rôle Dev, si configuré
             const hasDevRole = devRoleId && interaction.member.roles.cache.has(devRoleId); // Vérifie si l'utilisateur possède le rôle Dev
 
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
-            if (!isOwner && !hasDevRole) {
+            if (!isOwner && !hasDevRole && !isAdmin) {
                 return interaction.reply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,

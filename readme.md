@@ -1,6 +1,6 @@
 # Liste des fonctions à créer
 
-## Numéro de build: Dispatch.IO -> 0.0.9 (BETA TEST)
+## Numéro de build: Dispatch.IO -> 0.9.3 (BETA TEST)
 
 ## Build
 - `slash-system` 🟢
@@ -45,10 +45,9 @@
 - `/ticket-manager` 🟢
 / `/effacer-conversation` (Id départ et Id arriver) 🟢
 - `/level-reset` 🟣 [Pas dans la première version]
-- `/backup` (Créer une backup du serveur) 🟣 [Pas dans la première version]
-- `/load-backup` (Charge une backup du serveur) 🟣 [Pas dans la première version]
-- `/clear-backup` (Supprime une backup) 🟣 [Pas dans la première version]
-- `/clear-serveur-backup` (Supprime tous sur un serveur pour pouvoir charger une backup) 🟣 [Pas dans la première version]
+- `/backup-load` 🟢
+- `/backup-create` 🟢
+- `/backup-list` 🟢
 
 ### Modérateur
 - `/ban` 🟢

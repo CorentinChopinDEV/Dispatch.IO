@@ -29,6 +29,8 @@ async function interactionCREATE(interaction, client){
             const isValidCommand = (
                 interaction.commandName !== 'creation-embed' &&
                 !interaction.commandName.includes('config') &&
+                !interaction.commandName.includes('antiraid') &&
+                !interaction.commandName.includes('raidmode') &&
                 interaction.commandName !== 'clear' &&
                 interaction.commandName !== 'effacer-conversation' &&
                 !interaction.commandName.includes('ajout-entretien') &&
@@ -46,7 +48,10 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('signalement') &&
                 !interaction.commandName.includes('infractions') &&
                 !interaction.commandName.includes('mp-utilisateur') && 
-                !interaction.commandName.includes('say')
+                !interaction.commandName.includes('say') &&
+                !interaction.commandName.includes('backup-create') &&
+                !interaction.commandName.includes('backup-load') &&
+                !interaction.commandName.includes('backup-list')
             );
               
               if (isValidCommand) {

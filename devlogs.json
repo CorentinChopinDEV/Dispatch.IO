@@ -16,7 +16,10 @@
             "Création d'une instance LOGS complet pour les serveur.",
             "Migration vers la 0.9.2",
             "Ajout et mise en ligne du site internet.",
-            "Création d'une commande site-internet afin d'accèder à celui-ci."
+            "Création d'une commande site-internet afin d'accèder à celui-ci.",
+            "Ajout des commandes backup. (Create, list, Load)",
+            "Migation vers la 0.9.3",
+            "Correctif mineur sur des problèmes interne."
         ]
     }
 ]
