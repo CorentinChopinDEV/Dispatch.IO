@@ -125,7 +125,7 @@ module.exports = {
         });
 
         collector.on('end', async () => {
-            await message.deleteReply();
+            await interaction.deleteReply();
         });
     },
 };

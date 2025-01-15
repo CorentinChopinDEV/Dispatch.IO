@@ -119,18 +119,20 @@ class LogSystem {
             }
         }
 
-        await this.sendLog(channel.guild, {
-            title: actionTypes[action].title,
-            description: `### Salon ${action === 'delete' ? 'supprimé' : `<#${channel.id}>`}`,
-            color: actionTypes[action].color,
-            fields: [
-                { name: 'Nom', value: channel.name, inline: true },
-                { name: 'Type', value: channel.type, inline: true },
-                { name: 'ID', value: `\`\`${channel.id}\`\``, inline: true },
-                { name: 'Exécuté par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false },
-                ...(changes.length > 0 ? changes : [])
-            ]
-        }, 'edit');
+        if(changes.length < 0){
+            await this.sendLog(channel.guild, {
+                title: actionTypes[action].title,
+                description: `### Salon ${action === 'delete' ? 'supprimé' : `<#${channel.id}>`}`,
+                color: actionTypes[action].color,
+                fields: [
+                    { name: 'Nom', value: channel.name, inline: true },
+                    { name: 'Type', value: channel.type, inline: true },
+                    { name: 'ID', value: `\`\`${channel.id}\`\``, inline: true },
+                    { name: 'Exécuté par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false },
+                    ...(changes.length > 0 ? changes : [])
+                ]
+            }, 'edit');
+        }
     }
 
     // Gestion des rôles

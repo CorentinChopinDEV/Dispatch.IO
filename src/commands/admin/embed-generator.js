@@ -31,7 +31,7 @@ module.exports = {
         .setName('creation-embed')
         .setDescription('Créer un embed avec une prévisualisation.'),
 
-    async execute(interaction) {
+    async execute(interaction, existingEmbed = null) {
         const guildId = interaction.guild.id;
         const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
@@ -44,8 +44,9 @@ module.exports = {
         } else {
             return interaction.reply({ content: '**Rôle administrateur non configurée ->** ``/config-general``', ephemeral: true });
         }
+
         const modal = new ModalBuilder()
-            .setCustomId('createEmbedModal')
+            .setCustomId(existingEmbed ? 'editEmbedModal' : 'createEmbedModal')
             .setTitle('Création d\'un Embed');
 
         const titleInput = new TextInputBuilder()
@@ -69,6 +70,12 @@ module.exports = {
             .setPlaceholder('https://example.com/image.png')
             .setRequired(false);
 
+        if (existingEmbed) {
+            if (existingEmbed.title) titleInput.setValue(existingEmbed.title);
+            if (existingEmbed.description) descriptionInput.setValue(existingEmbed.description);
+            if (existingEmbed.image && existingEmbed.image.url) imageInput.setValue(existingEmbed.image.url);
+        }
+
         modal.addComponents(
             new ActionRowBuilder().addComponents(titleInput),
             new ActionRowBuilder().addComponents(descriptionInput),
@@ -79,7 +86,9 @@ module.exports = {
     },
 
     async handleModalSubmit(interaction) {
-        if (interaction.customId !== 'createEmbedModal') return;
+        const isEdit = interaction.customId === 'editEmbedModal';
+        if (!isEdit && interaction.customId !== 'createEmbedModal') return;
+
         const guildId = interaction.guild.id;
         const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
@@ -109,26 +118,30 @@ module.exports = {
                 .setStyle(ButtonStyle.Success)
         );
 
-        await interaction.reply({
-            embeds: [previewEmbed, embed],
-            components: [buttons],
-            ephemeral: true
-        });
+        if (isEdit) {
+            await interaction.update({
+                embeds: [previewEmbed, embed],
+                components: [buttons]
+            });
+        } else {
+            await interaction.reply({
+                embeds: [previewEmbed, embed],
+                components: [buttons],
+                ephemeral: true
+            });
+        }
     }
 };
 
-// Exportation correcte de la fonction handleButtonInteraction
 module.exports.handleButtonInteraction = async function (interaction) {
     if (interaction.customId === 'editEmbed') {
-        console.log('Edit button clicked');
-        // Relancer la modal pour édition
+        const existingEmbed = interaction.message.embeds[1];
         const command = interaction.client.commands.get('creation-embed');
         if (command && command.execute) {
-            await command.execute(interaction);  // Ou appeler la méthode qui relance la modal
+            await command.execute(interaction, existingEmbed);
         }
     } else if (interaction.customId === 'sendEmbed') {
-        console.log('Send button clicked');
-        const embed = interaction.message.embeds[1];  // L'embed utilisateur
+        const embed = interaction.message.embeds[1];
         if (!embed) {
             return interaction.reply({
                 content: '❌ Une erreur est survenue. L\'embed est introuvable.',

@@ -70,7 +70,6 @@ async function interactionCREATE(interaction, client){
             await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
     } else if (interaction.isModalSubmit()) {
-        console.log('Modal submitted:', interaction.customId);
         const command = client.commands.get('creation-embed');
         if (command && command.handleModalSubmit) {
             try {
@@ -540,10 +539,10 @@ async function interactionCREATE(interaction, client){
             interaction.channel.delete();
             ticketOwners.delete(interaction.channel.id);
         }, 5000);
-    } else if (interaction.isButton()) {
-        console.log('Button interaction detected:', interaction.customId);
+    } else if (interaction.customId === 'editEmbed' || interaction.customId === 'sendEmbed') {
+        if(!interaction.isButton()) return;
         await handleButtonInteraction(interaction);
-    } 
+    }
 } 
 
 export default interactionCREATE;

@@ -32,14 +32,15 @@ export default (client) => {
             console.error('Erreur de lecture du fichier JSON:', error);
             return;
         }
+        let reactionConfig = null;
         if(roleReactions){
-            const reactionConfig = roleReactions.find(config =>
+            reactionConfig = roleReactions.find(config =>
                 config.emoji === reaction.emoji.name &&
                 config.messageId === reaction.message.id &&
                 config.channelId === reaction.message.channel.id
             );
         }else{
-            return;
+            return console.log('N\'est pas un rôle react !');
         }
         if (!reactionConfig) return;
 
@@ -80,14 +81,15 @@ export default (client) => {
             console.error('Erreur de lecture du fichier JSON:', error);
             return;
         }
+        let reactionConfig = null;
         if(roleReactions){
-            const reactionConfig = roleReactions.find(config =>
+            reactionConfig = roleReactions.find(config =>
                 config.emoji === reaction.emoji.name &&
                 config.messageId === reaction.message.id &&
                 config.channelId === reaction.message.channel.id
             );
         }else{
-            return;
+            return console.log('N\'est pas un rôle react !');
         }
 
         if (!reactionConfig) return;
