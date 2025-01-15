@@ -15,7 +15,8 @@
             "Correctifs mineurs sur la fonction LOGS",
             "Résolution de problèmes lié avec la commande création-embed",
             "Résolution des questions répétitive dans le mini-jeux quiz.",
-            "Correction d'un bug avec la commande Gemini"
+            "Correction d'un bug avec la commande Gemini",
+            "Ajout de la commande /reset-violation-pseudo"
         ]
     }
 ]

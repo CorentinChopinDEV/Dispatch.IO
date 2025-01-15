@@ -29,12 +29,6 @@ Elle ce fais sur le serveur support en ouvrant un ticket.
 ## Anti-Raid
 - Anti-insultes (Mots interdits) 🟣 [Pas dans la première version]
 
-## Spécial LSPDFR French Corporation
-
-### Commandes
-- `/reset-all` (Anciennement Fetch) ❌
-
-
 ### Dependances
 - Renommer le .env.example en .env
 - Ouvrir le .env
