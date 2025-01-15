@@ -32,13 +32,15 @@ export default (client) => {
             console.error('Erreur de lecture du fichier JSON:', error);
             return;
         }
-
-        const reactionConfig = roleReactions.find(config =>
-            config.emoji === reaction.emoji.name &&
-            config.messageId === reaction.message.id &&
-            config.channelId === reaction.message.channel.id
-        );
-
+        if(roleReactions){
+            const reactionConfig = roleReactions.find(config =>
+                config.emoji === reaction.emoji.name &&
+                config.messageId === reaction.message.id &&
+                config.channelId === reaction.message.channel.id
+            );
+        }else{
+            return;
+        }
         if (!reactionConfig) return;
 
         try {
@@ -78,12 +80,15 @@ export default (client) => {
             console.error('Erreur de lecture du fichier JSON:', error);
             return;
         }
-
-        const reactionConfig = roleReactions.find(config =>
-            config.emoji === reaction.emoji.name &&
-            config.messageId === reaction.message.id &&
-            config.channelId === reaction.message.channel.id
-        );
+        if(roleReactions){
+            const reactionConfig = roleReactions.find(config =>
+                config.emoji === reaction.emoji.name &&
+                config.messageId === reaction.message.id &&
+                config.channelId === reaction.message.channel.id
+            );
+        }else{
+            return;
+        }
 
         if (!reactionConfig) return;
 

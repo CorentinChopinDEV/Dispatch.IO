@@ -325,16 +325,23 @@ class LogSystem {
         }).catch(() => null);
 
         const executor = auditLogs?.entries.first()?.executor;
-        let deletedBy = 'Supprimé par: BOT'
+        let deletedBy = null;
         if (executor && executor?.id && message.author?.id) {
             const deletedBy = executor && executor.id !== message.author.id ? 
             `\nSupprimé par: <@${executor.id}> \`\`${executor.id}\`\`` : '';
         }
-        let userIdentifiant = 'Surement un BOT...';
+        let userIdentifiant = null;
         if(message.author?.id){
             userIdentifiant = `<@${message.author.id}>`;
+        }else{
+            return;
         }
-
+        
+        if(deletedBy === null){
+            return console.log('Pas d\'utilisateur associès.');
+        } else if (userIdentifiant === null){
+            return console.log('Pas d\'utilisateur associès.');
+        }
         await this.sendLog(message.guild, {
             title: '🗑️ Message supprimé',
             description: `### Message de ${userIdentifiant} supprimé dans <#${message.channel.id}>${deletedBy}`,

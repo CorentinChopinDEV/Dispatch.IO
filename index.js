@@ -45,10 +45,10 @@ const commandsPath = path.join(__dirname, 'src/commands');
 loadCommands(commandsPath, client, commands);
 
 //Ceci à passer dans un autre fichier
-const TARGET_GUILD_ID = '1212777500565045258';
-const ROLE_A = '1213149429859618926';
-const ROLE_B = '1327822325323927552'
-const ROLE_C = '1225029685264519219';
+const TARGET_GUILD_ID = '1212777500565045258'; //LSDPFR French Corporation
+const ROLE_A = '1213149429859618926'; // Membres
+const ROLE_B = '1327822325323927552' // Violation pseudo
+const ROLE_C = '1225029685264519219'; // Règlement valider
 async function checkAndRemoveRoles() {
     const targetGuild = client.guilds.cache.get(TARGET_GUILD_ID);
     if (!targetGuild) {
@@ -97,7 +97,9 @@ client.once('ready', async () => {
     setInterval(() => protectionBOTCheck(client), 30000);
     console.log('Bot is ready and commands are available !');
     console.log('Anti-Raid actif !')
-    setInterval(checkAndRemoveRoles, 5 * 1000);
+    setInterval(checkAndRemoveRoles, 10 * 1000);
+    const sondageCommand = client.commands.get('sondage');
+    await sondageCommand.restorePolls(client);
     
 });
 roleReactionHandler(client);
