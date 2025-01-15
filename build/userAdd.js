@@ -49,6 +49,22 @@ async function userAdd(client, member) {
             // Envoyer un MP à l'utilisateur
             const user = await member.user;  // Récupérer l'utilisateur
             await user.send({ embeds: [raidEmbed] });
+            const userKickEmbed = new EmbedBuilder()
+                .setTitle('🚫 Expulsé du serveur - Mode protection')
+                .setDescription(`L'utilisateur <@${member.id}> a été expulsé car le serveur est en mode protection.`)
+                .addFields(
+                    { name: '📅 Date', value: new Date().toLocaleString(), inline: true },
+                    { name: '🔨 Expulsé par', value: `Dispatch.IO`, inline: true },
+                    { name: '❌ Raison', value: "Le serveur est en mode protection.", inline: false },
+                )
+                .setColor('#FFA500')
+                .setTimestamp()
+                .setFooter({ text: 'Action effectuée par le système', iconURL: member.displayAvatarURL() });
+            
+            if(guildData?.logs_member_channel){
+                const logChannel = await member.guild.channels.fetch(guildData.logs_member_channel).catch(() => null);
+                await logChannel.send({ embeds: [userKickEmbed] });
+            }
             await member.kick('Mode Raid Actif');
             console.log(`Un message privé a été envoyé à l'utilisateur ${member.id}.`);
 

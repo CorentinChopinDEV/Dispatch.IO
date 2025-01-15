@@ -1,25 +1,14 @@
 [
     {
-        "date": "13-01-2025",
-        "version": "0.9.2",
-        "title": "Correctif mineur sur le bot",
+        "date": "15-01-2025",
+        "version": "0.9.4",
+        "title": "Migration de version",
         "author": "CodanoTW",
         "changes": [
-            "Correction de l'incident ID 1",
-            "Correction de l'incident ID 2",
-            "Correction de l'incdent ID 3",
-            "Correction de l'incdent ID 4",
-            "Création d'une commande status",
-            "Création de la commande maintenance",
-            "Edition du système Anti-Raid, plus robuste",
-            "Edition de config-general pour acceuillir un nouveau salon LOGS",
-            "Création d'une instance LOGS complet pour les serveur.",
-            "Migration vers la 0.9.2",
-            "Ajout et mise en ligne du site internet.",
-            "Création d'une commande site-internet afin d'accèder à celui-ci.",
-            "Ajout des commandes backup. (Create, list, Load)",
-            "Migation vers la 0.9.3",
-            "Correctif mineur sur des problèmes interne."
+            "Migration vers la 0.9.4",
+            "Pour le resp.support ajout d'une fonction qui permet d'envoyer un message en mp quand un BDA Premium se ferme.",
+            "Ajouts de 2 mini jeux (Devine 'Qui permet de devinez un nombre' et quiz.",
+            ""
         ]
     }
 ]

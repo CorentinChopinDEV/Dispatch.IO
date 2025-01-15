@@ -51,7 +51,10 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('say') &&
                 !interaction.commandName.includes('backup-create') &&
                 !interaction.commandName.includes('backup-load') &&
-                !interaction.commandName.includes('backup-list')
+                !interaction.commandName.includes('backup-list') &&
+                !interaction.commandName.includes('bannissements-liste') &&
+                !interaction.commandName.includes('devine') &&
+                !interaction.commandName.includes('quiz')
             );
               
               if (isValidCommand) {

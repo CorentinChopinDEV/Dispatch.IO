@@ -180,7 +180,7 @@ ${guildData?.antiRaid === 'Actif' ? '**L\'Anti-Raid doit être désactiver pour 
             }
 
             // Suppression des rôles existants
-            await updateProgress('Suppression des rôles existants... 3️⃣');
+            await updateProgress('33% - Suppression des rôles existants... 3️⃣');
             const rolesToDelete = interaction.guild.roles.cache
                 .filter(role => 
                     role.name !== '@everyone' && 

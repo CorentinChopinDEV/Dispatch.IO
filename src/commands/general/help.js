@@ -81,6 +81,9 @@ module.exports = {
                 moderation: 'Modération',
                 admin: 'Administrateur',
                 owner: 'Propriétaire',
+                minijeux: 'Mini-jeux',
+                backup: 'Backup'
+
                 // Ajoutez d'autres catégories ici
             };
             
@@ -238,6 +241,50 @@ module.exports = {
                     const sectionEmbed = new EmbedBuilder()
                         .setTitle(`Propriétaire - Commandes 👑`)
                         .setDescription(`*Voici toutes les commandes disponibles pour la section* **Propriétaire**:`)
+                        .setColor(guildData.botColor || '#f40076')
+                        .setImage(bannerURL)
+                        .setTimestamp()
+        
+                    commands.forEach(command => {
+                        sectionEmbed.addFields({
+                            name: `\`${command.name}\``,
+                            value: command.description,
+                            inline: false, // Aligner horizontalement les commandes
+                        });
+                    });
+        
+                    await i.update({
+                        embeds: [sectionEmbed],
+                        components: [row], // Garde le menu déroulant
+                    });
+                }else if (Array.isArray(sectionCommands.minijeux)) {
+                    const commands = sectionCommands.minijeux;
+        
+                    const sectionEmbed = new EmbedBuilder()
+                        .setTitle(`Mini Jeux - Commandes 🕹️`)
+                        .setDescription(`*Voici toutes les commandes disponibles pour la section* **Mini-jeux**:`)
+                        .setColor(guildData.botColor || '#f40076')
+                        .setImage(bannerURL)
+                        .setTimestamp()
+        
+                    commands.forEach(command => {
+                        sectionEmbed.addFields({
+                            name: `\`${command.name}\``,
+                            value: command.description,
+                            inline: false, // Aligner horizontalement les commandes
+                        });
+                    });
+        
+                    await i.update({
+                        embeds: [sectionEmbed],
+                        components: [row], // Garde le menu déroulant
+                    });
+                } else if (Array.isArray(sectionCommands.backup)) {
+                    const commands = sectionCommands.backup;
+        
+                    const sectionEmbed = new EmbedBuilder()
+                        .setTitle(`Backup - Commandes 🔩`)
+                        .setDescription(`*Voici toutes les commandes disponibles pour la section* **Backup**:`)
                         .setColor(guildData.botColor || '#f40076')
                         .setImage(bannerURL)
                         .setTimestamp()

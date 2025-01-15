@@ -45,12 +45,12 @@ module.exports = {
         }
         if (guildData.ownerId) {
             const isOwner = guildData.ownerId === interaction.user.id;
-            const devRoleId = guildData.dev_role; // ID du rôle Dev, si configuré
-            const hasDevRole = devRoleId && interaction.member.roles.cache.has(devRoleId);
             const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
+            const devRoleId = guildData.dev_role; // ID du rôle Dev, si configuré
+            const hasDevRole = devRoleId && interaction.member.roles.cache.has(devRoleId); // Vérifie si l'utilisateur possède le rôle Dev
 
             // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
-            if (!isOwner && !hasDevRole && isAdmin) {
+            if (!isOwner && !hasDevRole && !isAdmin) {
                 return interaction.reply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
                     ephemeral: true,
@@ -112,6 +112,21 @@ module.exports = {
                         )
                     ]
                 });
+                const changeRaidModeEmbed = new EmbedBuilder()
+                    .setTitle(newStatus === 'Actif' ? '⚠️ Activation du mode protection' : '⚠️ Désactivation du mode protection')
+                    .setDescription(newStatus === 'Actif' ? '@everyone Le mode raid viens d\'être activé sur le serveur.' : '@everyone Le mode raid viens d\'être désactivé sur le serveur.')
+                    .addFields(
+                        { name: '📅 Date', value: new Date().toLocaleString(), inline: false },
+                        { name: '🔌 Executé par', value: `<@${interaction.member.id}> \`${interaction.member.id}\``, inline: false },
+                    )
+                    .setColor('#FF0000')
+                    .setTimestamp()
+                    .setFooter({ text: 'Action effectuée par le système', iconURL: interaction.member.displayAvatarURL() });
+                
+                if(guildData?.logs_server_channel){
+                    const logChannel = await interaction.guild.channels.fetch(guildData.logs_server_channel).catch(() => null);
+                    await logChannel.send({ embeds: [changeRaidModeEmbed] });
+                }
             }
         });
     }

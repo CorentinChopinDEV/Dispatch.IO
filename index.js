@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection, Partials, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Partials, ActivityType, AttachmentBuilder } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,12 +17,12 @@ import protectionBOTCheck from './src/guild/french-corp/douanier.js';
 import AntiRaidSystem from './build/anti-raid.js';
 import LogSystem from './build/log-system.js';
 import geminiText from './build/gemini-text.js';
-dotenv.config();
+import premiumClose from './src/guild/french-corp/premium-end.js';
 
+dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Client Instance
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -30,42 +30,38 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessageReactions
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildPresences
     ],
     partials: [Partials.Message, Partials.Reaction, Partials.Channel]
 });
+
 const antiRaid = new AntiRaidSystem();
 const logSystem = new LogSystem();
 client.commands = new Collection();
 const commands = [];
 const commandsPath = path.join(__dirname, 'src/commands');
+
 loadCommands(commandsPath, client, commands);
 
+//Ceci à passer dans un autre fichier
 const TARGET_GUILD_ID = '1212777500565045258';
 const ROLE_A = '1213149429859618926';
 const ROLE_B = '1327822325323927552'
 const ROLE_C = '1225029685264519219';
-
-// Fonction pour vérifier et retirer les rôles
 async function checkAndRemoveRoles() {
     const targetGuild = client.guilds.cache.get(TARGET_GUILD_ID);
-
     if (!targetGuild) {
         return;
     }
-
     try {
-        // Récupérer tous les membres du serveur
         await targetGuild.members.fetch();
-
         targetGuild.members.cache.forEach(async (member) => {
             // Vérifie si le membre a les rôles A et B
             if (member.roles.cache.has(ROLE_A) && member.roles.cache.has(ROLE_B)) {
                 const rolesToRemove = [ROLE_A, ROLE_C].filter(roleId =>
                     member.roles.cache.has(roleId)
                 );
-
-                // Supprimer les rôles
                 if (rolesToRemove.length > 0) {
                     await member.roles.remove(rolesToRemove);
                     console.log(`Rôles retirés pour ${member.user.tag}: ${rolesToRemove.join(', ')}`);
@@ -77,7 +73,6 @@ async function checkAndRemoveRoles() {
     }
 }
 
-// Client on Ready
 client.once('ready', async () => {
     await antiRaid.initialize(client);
     await logSystem.initialize(client);
@@ -87,39 +82,35 @@ client.once('ready', async () => {
     await refreshCommands(client, commands);
     console.log('Bot is ready and commands are available !');
     const updatePresence = () => {
+        const commandCount = client.commands.size;
         client.user.setPresence({         
             activities: [{             
-                name: `${client.guilds.cache.size} serveurs | 📂: /help`,             
+                name: `${client.guilds.cache.size} serveurs | 📂: ${commandCount}`,             
                 type: ActivityType.Streaming,            
                 url: "https://www.twitch.tv/codanotw",
             }],         
             status: 'online'     
         });
-        setTimeout(updatePresence, 30000);  // Met à jour la présence toutes les 30 secondes
+        setTimeout(updatePresence, 30000);
     };
-    setTimeout(updatePresence, 100);  // Met à jour la présence toutes les 30 secondes
+    setTimeout(updatePresence, 100);
     setInterval(() => protectionBOTCheck(client), 30000);
     console.log('Bot is ready and commands are available !');
     console.log('Anti-Raid actif !')
     setInterval(checkAndRemoveRoles, 5 * 1000);
     
 });
-
-// Role Reaction
 roleReactionHandler(client);
-
 // Client on Interaction Create
 client.on('interactionCreate', async interaction => {
     interactionCREATE(interaction, client, loadGuildData);
 });
-
 client.on('messageCreate', async (message) => {
     suggestion(message);
 });
 client.on('messageReactionAdd', async (reaction, user) => {
     suggestionReact(reaction, user);
 });
-
 client.on('messageCreate', (message) => {
     const guildId = message.guild.id;
     const guildPath = path.resolve(`./guilds-data/${guildId}.json`);
@@ -131,8 +122,6 @@ client.on('messageCreate', (message) => {
         }, 10000);
     }
 });
-
-// Client on Guild Create
 client.on('guildCreate', async (guild) => {
     handleBotJoin(guild);
     await client.application.commands.set([]);
@@ -140,37 +129,26 @@ client.on('guildCreate', async (guild) => {
     await loadCommands(commandsPath, client, commands);
     await refreshCommands(client, commands);
 });
-
-// Client on Guild Delete
 client.on('guildDelete', guild => {
     handleBotLeave(guild);
 });
-
-// Anti-Crash Module
 process.on('uncaughtException', (error) => {
     console.error('Une erreur non interceptée a été détectée :', error);
 });
+// Ceci à passer dans un autre fichier de gestion
 process.on('unhandledRejection', async (reason, promise) => {
     console.error('Une promesse rejetée sans gestionnaire a été détectée :', reason);
-
-    // Vérifier si l'erreur provient d'une interaction inconnue
     if (reason?.code === 10062) {
-
         console.warn('Erreur liée à une interaction inconnue détectée. Tentative de réexécution...');
-
-        const interaction = reason?.interaction; // Supposons que l'objet interaction soit dans l'erreur
+        const interaction = reason?.interaction;
         if (interaction && interaction.commandName) {
             try {
                 const command = interaction.client.commands.get(interaction.commandName);
                 if (!command) throw new Error('Commande introuvable.');
-
-                // Réexécuter la commande
                 await command.execute(interaction);
                 console.log(`Commande "${interaction.commandName}" réexécutée avec succès.`);
             } catch (error) {
                 console.error('Erreur lors de la tentative de réexécution :', error);
-
-                // Envoyer un message d'erreur
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({
                         content: '❌ Une erreur est survenue et la commande n\'a pas pu être exécutée.',
@@ -197,39 +175,42 @@ client.on('error', (error) => {
 client.on('shardError', (error) => {
     console.error('Erreur de shard détectée :', error);
 });
-
-//Guild Member Add
 client.on('guildMemberAdd', async (member) => {
     userAdd(client, member);
 });
-
 client.on('threadCreate', async (thread) => {
     const guildId = thread.guild.id;
-    console.log('pass here')
     premiumPing(thread, guildId);
 });
-
+client.on('threadUpdate', async (oldThread, newThread) => {
+    if (!oldThread.archived && newThread.archived) {
+        try {
+            const guildId = newThread.guild.id;
+            premiumClose(newThread, guildId, client);
+        } catch (error) {
+            console.error('Erreur lors du traitement de threadUpdate (fermeture de thread) :', error);
+        }
+    }
+});
 async function loadGuildData(guildPath) {
     try {
         const data = await fs.readFile(guildPath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
         console.error('Erreur de chargement des données de la guilde:', error);
-        return {}; // Retourne un objet vide en cas d'erreur
+        return {};
     }
 }
-
 const loadWhitelist = (guildPath) => {
     try {
         const data = fs.readFileSync(guildPath, 'utf-8');
         const parsedData = JSON.parse(data);
-        return parsedData.whitelist || []; // Retourne le tableau 'whitelist' ou un tableau vide si absent
+        return parsedData.whitelist || [];
     } catch (error) {
         console.error('Erreur lors du chargement de la whitelist:', error);
-        return []; // Retourne une liste vide en cas d'erreur
+        return [];
     }
 };
-
 async function sendLog(title, description, color) {
     try {
         const logChannel = client.channels.cache.get('1301991104983597056');
@@ -238,21 +219,16 @@ async function sendLog(title, description, color) {
             console.error(`Le salon avec l'ID ${logChannelId} n'a pas été trouvé.`);
             return;
         }
-
-        // Créer l'embed pour le log
         const logEmbed = new EmbedBuilder()
             .setTitle(title)
             .setDescription(description)
             .setColor(color)
             .setTimestamp();
-
-        // Envoyer l'embed dans le salon
         await logChannel.send({ embeds: [logEmbed] });
     } catch (error) {
         console.error('Erreur lors de l\'envoi du log :', error);
     }
 }
-
 client.on('messageCreate', async (message) => {
     try {
         await geminiText.execute(message);
@@ -260,5 +236,4 @@ client.on('messageCreate', async (message) => {
         console.error('Erreur lors du traitement du message:', error);
     }
 });
-
 client.login(process.env.TOKEN);

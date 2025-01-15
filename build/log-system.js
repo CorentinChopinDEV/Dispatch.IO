@@ -319,24 +319,29 @@ class LogSystem {
 
     // Gestion des messages
     async handleMessageDelete(message) {
-        if (message.author.bot) return;
-
         const auditLogs = await message.guild.fetchAuditLogs({
             type: AuditLogEvent.MessageDelete,
             limit: 1
         }).catch(() => null);
 
         const executor = auditLogs?.entries.first()?.executor;
-        const deletedBy = executor && executor.id !== message.author.id ? 
+        let deletedBy = 'Supprimé par: BOT'
+        if (executor && executor?.id && message.author?.id) {
+            const deletedBy = executor && executor.id !== message.author.id ? 
             `\nSupprimé par: <@${executor.id}> \`\`${executor.id}\`\`` : '';
+        }
+        let userIdentifiant = 'Surement un BOT...';
+        if(message.author?.id){
+            userIdentifiant = `<@${message.author.id}>`;
+        }
 
         await this.sendLog(message.guild, {
             title: '🗑️ Message supprimé',
-            description: `### Message de <@${message.author.id}> supprimé dans <#${message.channel.id}>${deletedBy}`,
+            description: `### Message de ${userIdentifiant} supprimé dans <#${message.channel.id}>${deletedBy}`,
             color: 0xe74c3c,
             fields: [
                 { name: 'Contenu', value: message.content || 'Aucun contenu texte', inline: false },
-                { name: 'Auteur', value: `<@${message.author.id}> \`\`${message.author.id}\`\``, inline: true },
+                { name: 'Auteur', value: `${userIdentifiant} \`\`${userIdentifiant}\`\``, inline: true },
                 { name: 'Canal', value: `<#${message.channel.id}> \`\`${message.channel.id}\`\``, inline: true }
             ]
         }, 'edit');
