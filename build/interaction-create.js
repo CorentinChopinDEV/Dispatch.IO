@@ -55,7 +55,8 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('bannissements-liste') &&
                 !interaction.commandName.includes('devine') &&
                 !interaction.commandName.includes('quiz') &&
-                !interaction.commandName.includes('sondage')
+                !interaction.commandName.includes('sondage') &&
+                !interaction.commandName.includes('pfc')
             );
               
               if (isValidCommand) {
@@ -67,7 +68,7 @@ async function interactionCREATE(interaction, client){
             
             await checkGuildConfig(interaction.guildId, interaction);
             console.error(error);
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.editReply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
     } else if (interaction.isModalSubmit()) {
         const command = client.commands.get('creation-embed');

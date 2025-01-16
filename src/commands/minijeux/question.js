@@ -203,7 +203,7 @@ module.exports = {
                 currentQuestionData = await generateUniqueQuestion(selectedCategory, selectedDifficulty);
 
                 if (currentQuestionData.question.length > 80) {
-                    currentQuestionData.question = currentQuestionData.question.slice(0, 80) + '...';
+                    currentQuestionData.question = currentQuestionData.question.slice(0, 2000) + '...';
                 }
 
                 const questionEmbed = new EmbedBuilder()

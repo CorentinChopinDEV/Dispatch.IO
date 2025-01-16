@@ -1,416 +1,866 @@
-const { Events, AuditLogEvent , PermissionsBitField } = require('discord.js');
+const { Events, AuditLogEvent, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 
+const PERMISSIONS_TRANSLATIONS = {
+    CreateInstantInvite: "Créer une invitation instantanée",
+    ManageChannels: "Gérer les salons",
+    AddReactions: "Ajouter des réactions",
+    ViewChannel: "Voir le salon",
+    SendMessages: "Envoyer des messages",
+    SendTTSMessages: "Envoyer des messages TTS",
+    ManageMessages: "Gérer les messages",
+    EmbedLinks: "Intégrer des liens",
+    AttachFiles: "Joindre des fichiers",
+    ReadMessageHistory: "Voir l'historique des messages",
+    MentionEveryone: "Mentionner tout le monde",
+    UseExternalEmojis: "Utiliser des émojis externes",
+    ManageRoles: "Gérer les rôles",
+    ManageWebhooks: "Gérer les webhooks",
+    UseApplicationCommands: "Utiliser des commandes d'application",
+    ManageThreads: "Gérer les fils",
+    CreatePublicThreads: "Créer des fils publics",
+    CreatePrivateThreads: "Créer des fils privés",
+    UseExternalStickers: "Utiliser des stickers externes",
+    SendMessagesInThreads: "Envoyer des messages dans les fils",
+    UseEmbeddedActivities: "Utiliser les activités intégrées",
+    SendVoiceMessages: "Envoyer des messages vocaux",
+    SendPolls: "Envoyer des sondages",
+    UseExternalApps: "Utiliser des applications externes",
+};
+
+function translatePermission(permission) {
+    return PERMISSIONS_TRANSLATIONS[permission] || permission;
+}
 class LogSystem {
     constructor() {
         this.guildConfigs = new Map();
+        this.voiceStates = new Map();
+        this.messageCache = new Map();
+        console.log('LogSystem initialized');
     }
 
     loadGuildConfig(guildId) {
         try {
-            const configPath = `./guilds-data/${guildId}.json`;
+            const configPath = path.join(process.cwd(), 'guilds-data', `${guildId}.json`);
+            console.log(`Attempting to load config from: ${configPath}`);
+
             if (fs.existsSync(configPath)) {
                 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
                 this.guildConfigs.set(guildId, config);
+                console.log(`Successfully loaded config for guild: ${guildId}`);
                 return config;
             }
+            console.log(`No config file found for guild: ${guildId}`);
             return null;
         } catch (error) {
-            console.error(`Erreur lors du chargement de la config pour la guild ${guildId}:`, error);
+            console.error(`Error loading config for guild ${guildId}:`, error);
             return null;
         }
     }
+    
+    // Fonction pour traduire les permissions
 
-    async sendLog(guild, content, type = 'edit') {
+    getLogColor(guild, type) {
         const config = this.guildConfigs.get(guild.id) || this.loadGuildConfig(guild.id);
-        if (!config) return;
-    
-        const channelId = type === 'edit' ? config.logs_edit_channel : config.logs_server_channel;
-        if (!channelId) return;
-    
-        const logChannel = await guild.channels.fetch(channelId).catch(() => null);
-        if (!logChannel) return;
-    
-        await logChannel.send({
-            embeds: [{
-                title: content.title,
-                description: content.description,
-                color: content.color || 0x3498db,
-                fields: content.fields || [],
-                timestamp: new Date(),
-                thumbnail: {
-                    url: content.thumbnail || guild.iconURL({ dynamic: true }) // Utilise content.thumbnail ou l'icône du serveur par défaut
-                }
-            }]            
-        }).catch(console.error);
+        if (!config?.colors?.[type]) {
+            const defaultColors = {
+                create: 0xf40076,
+                delete: 0xff0000,
+                update: 0xf40076,
+                voice: 0xf40076,
+                thread: 0xf40076,
+                emoji: 0xf40076,
+                message: 0xf40076,
+                member: 0xf40076,
+                role: 0xff0000,
+                channel: 0xff0000
+            };
+            return defaultColors[type] || 0x7289da;
+        }
+        return parseInt(config.colors[type], 16);
     }
 
-    // Gestion des membres
-    async handleMemberJoin(member) {
-        const accountAge = Math.floor((Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24));
+    createBaseEmbed(guild, type) {
+        return new EmbedBuilder()
+            .setColor(this.getLogColor(guild, type))
+            .setTimestamp()
+            .setFooter({ 
+                text: guild.name, 
+                iconURL: guild.iconURL({ dynamic: true }) 
+            });
+    }
+
+    async sendLog(guild, options, type = 'edit') {
+        console.log(`Attempting to send log for guild: ${guild.id}, type: ${type}`);
         
-        await this.sendLog(member.guild, {
-            title: '👋 Nouveau membre',
-            description: `### ${member.user.tag} a rejoint le serveur`,
-            color: 0x2ecc71,
-            fields: [
-                { name: 'ID', value: `\`\`${member.id}\`\``, inline: false },
-                { name: 'Compte créé il y a', value: `${accountAge} jours`, inline: false },
-                { name: 'Bot', value: member.user.bot ? 'Oui' : 'Non', inline: false },
-            ],
-            thumbnail: member.user.displayAvatarURL({ dynamic: true })
-        }, 'server');
+        const config = this.guildConfigs.get(guild.id) || this.loadGuildConfig(guild.id);
+        if (!config) {
+            console.log(`No config found for guild ${guild.id}`);
+            return;
+        }
+
+        const channelId = type === 'edit' ? config.logs_edit_channel : config.logs_server_channel;
+        if (!channelId) {
+            console.log(`No log channel configured for type ${type} in guild ${guild.id}`);
+            return;
+        }
+
+        try {
+            const logChannel = await guild.channels.fetch(channelId);
+            if (!logChannel) {
+                console.log(`Could not fetch log channel ${channelId}`);
+                return;
+            }
+
+            console.log(`Creating embed for log in guild ${guild.id}`);
+            const embed = this.createBaseEmbed(guild, options.logType)
+                .setTitle(options.title)
+                .setDescription(options.description);
+
+            if (options.fields?.length > 0) {
+                embed.addFields(options.fields);
+            }
+
+            if (options.thumbnail) {
+                embed.setThumbnail(options.thumbnail);
+            }
+
+            if (options.image) {
+                embed.setImage(options.image);
+            }
+
+            if (options.author) {
+                embed.setAuthor(options.author);
+            }
+
+            await logChannel.send({ embeds: [embed] });
+            console.log(`Successfully sent log to channel ${channelId}`);
+        } catch (error) {
+            console.error(`Error sending log to guild ${guild.id}:`, error);
+        }
+    }
+
+    // Messages
+    async handleMessageDelete(message) {
+        // if (!message.guild || message.author?.bot) return;
+        console.log(`Message delete event triggered in guild: ${message.guild.id}`);
+
+        try {
+            const auditLogs = await message.guild.fetchAuditLogs({
+                type: AuditLogEvent.MessageDelete,
+                limit: 1
+            });
+
+            const deleteLog = auditLogs.entries.first();
+            const deletedBy = `\n📝 __**Supprimé par:**__\n<@${deleteLog.executorId}> (\`${deleteLog.executorId}\`)`
+
+            const attachments = message.attachments.size > 0
+                ? message.attachments.map(a => `[${a.name}](${a.url})`).join('\n')
+                : null;
+            const authorId = message.author?.id || 'bot';
+
+            const fields = [
+                { 
+                    name: '👤 Auteur', 
+                    value: authorId === 'bot' ? 'Bot' : `<@${authorId}> (\`${authorId}\`)`, 
+                    inline: false 
+                },
+                { 
+                    name: '📍 Canal', 
+                    value: `<#${message.channel.id}> (\`${message.channel.id}\`)`, 
+                    inline: false 
+                }
+];
+
+            if (message.content) {
+                fields.push({ name: '📄 Contenu', value: message.content.slice(0, 1024), inline: false });
+            }
+
+            if (attachments) {
+                fields.push({ name: '📎 Pièces jointes', value: attachments, inline: false });
+            }
+
+            await this.sendLog(message.guild, {
+                title: '🗑️ Message supprimé',
+                description: `## Un message a été supprimé 🗑️\n\n${deletedBy}`,
+                logType: 'message',
+                fields,
+            }, 'edit');
+        } catch (error) {
+            console.error('Error handling message delete:', error);
+        }
+    }
+
+    async handleMessageUpdate(oldMessage, newMessage) {
+        if (!newMessage.guild || newMessage.author?.bot || oldMessage.content === newMessage.content) return;
+        console.log(`Message update event triggered in guild: ${newMessage.guild.id}`);
+
+        try {
+            const fields = [
+                { name: '👤 Auteur', value: `<@${newMessage.author.id}> \n(\`${newMessage.author.id}\`)`, inline: true },
+                { name: '📍 Canal', value: `<#${newMessage.channel.id}> \n(\`${newMessage.channel.id}\`)`, inline: true },
+                { name: '🔗 Message', value: `[Voir le message](${newMessage.url})`, inline: true },
+                { name: '📝 Avant', value: oldMessage.content || '*Aucun contenu*', inline: false },
+                { name: '📝 Après', value: newMessage.content || '*Aucun contenu*', inline: false }
+            ];
+
+            await this.sendLog(newMessage.guild, {
+                title: '✏️ Message modifié',
+                description: `## Un message a été modifié ✏️`,
+                logType: 'message',
+                fields,
+                author: {
+                    name: newMessage.author.tag,
+                    iconURL: newMessage.author.displayAvatarURL({ dynamic: true })
+                }
+            }, 'edit');
+        } catch (error) {
+            console.error('Error handling message update:', error);
+        }
+    }
+
+    // Membres
+    async handleMemberJoin(member) {
+        console.log(`Member join event triggered in guild: ${member.guild.id}`);
+        try { 
+            const accountAge = Math.floor((Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24));
+            const accountCreated = new Date(member.user.createdTimestamp).toLocaleString();
+            
+            const fields = [
+                { name: '👤 Membre', value: `<@${member.id}> (\`${member.id}\`)`, inline: true },
+                { name: '🎂 Compte créé', value: `${accountCreated}\n(il y a ${accountAge} jours)`, inline: true },
+                { name: '🤖 Bot', value: member.user.bot ? 'Oui' : 'Non', inline: true }
+            ];
+
+            await this.sendLog(member.guild, {
+                title: '📥 Nouveau membre',
+                description: `### ${member.user.tag} a rejoint le serveur`,
+                logType: 'member',
+                fields,
+                thumbnail: member.user.displayAvatarURL({ dynamic: true, size: 256 })
+            }, 'server');
+        } catch (error) {
+            console.error('Error handling member join:', error);
+        }
     }
 
     async handleMemberLeave(member) {
-        const roles = member.roles.cache
-            .filter(role => role.id !== member.guild.id)
-            .map(role => `<@&${role.id}>`)
-            .join(', ') || 'Aucun rôle';
+        console.log(`Member leave event triggered in guild: ${member.guild.id}`);
+        try {
+            const roles = member.roles.cache
+                .filter(role => role.id !== member.guild.id)
+                .map(role => `<@&${role.id}>`)
+                .join(', ') || '*Aucun rôle*';
 
-        await this.sendLog(member.guild, {
-            title: '👋 Membre parti',
-            description: `### ${member.user.tag} a quitté le serveur`,
-            color: 0xe74c3c,
+            const joinedAt = member.joinedAt?.toLocaleString() || 'Date inconnue';
+            const timeOnServer = member.joinedAt
+                ? Math.floor((Date.now() - member.joinedAt) / (1000 * 60 * 60 * 24))
+                : 'Inconnu';
+
+            const fields = [
+                { name: '👤 Membre', value: `<@${member.id}> (\`${member.id}\`)`, inline: true },
+                { name: '📅 A rejoint le', value: joinedAt, inline: true },
+                { name: '⏱️ Durée sur le serveur', value: `${timeOnServer} jours`, inline: true },
+                { name: '👑 Rôles', value: roles, inline: false }
+            ];
+
+            if (member.nickname) {
+                fields.push({ name: '📝 Surnom', value: member.nickname, inline: true });
+            }
+
+            await this.sendLog(member.guild, {
+                title: '📤 Membre parti',
+                description: `### ${member.user.tag} a quitté le serveur`,
+                logType: 'member',
+                fields,
+                thumbnail: member.user.displayAvatarURL({ dynamic: true, size: 256 })
+            }, 'server');
+        } catch (error) {
+            console.error('Error handling member leave:', error);
+        }
+    }
+
+    // Vocaux
+    handleVoiceStateUpdate(oldState, newState) {
+        const member = newState.member || oldState.member;
+        if (!member) return;
+        console.log(`Voice state update event triggered for member: ${member.id}`);
+
+        const timestamp = Date.now();
+
+        // Rejoindre un salon vocal
+        if (!oldState.channelId && newState.channelId) {
+            this.voiceStates.set(member.id, {
+                channelId: newState.channelId,
+                joinTime: timestamp
+            });
+
+            this.sendLog(member.guild, {
+                title: '🎙️ Connexion vocale',
+                description: `## ${member.user.tag} a rejoint un salon vocal 🎙️`,
+                logType: 'voice',
+                fields: [
+                    { name: '👤 Membre', value: `<@${member.id}> (\`${member.id}\`)`, inline: true },
+                    { name: '🔊 Salon', value: `<#${newState.channelId}> (\`${newState.channelId}\`)`, inline: true },
+                    { name: '⏰ Heure de connexion', value: new Date(timestamp).toLocaleString(), inline: false }
+                ],
+                author: {
+                    name: member.user.tag,
+                    iconURL: member.user.displayAvatarURL({ dynamic: true })
+                }
+            }, 'server');
+        }
+        // Quitter un salon vocal
+        else if (oldState.channelId && !newState.channelId) {
+            const voiceState = this.voiceStates.get(member.id);
+            if (voiceState) {
+                const duration = timestamp - voiceState.joinTime;
+                const hours = Math.floor(duration / 3600000);
+                const minutes = Math.floor((duration % 3600000) / 60000);
+                const seconds = Math.floor((duration % 60000) / 1000);
+                const durationStr = `${hours}h ${minutes}m ${seconds}s`;
+
+                this.sendLog(member.guild, {
+                    title: '🎙️ Déconnexion vocale',
+                    description: `## ${member.user.tag} a quitté un salon vocal 🎙️`,
+                    logType: 'voice',
+                    fields: [
+                        { name: '👤 Membre', value: `<@${member.id}> (\`${member.id}\`)`, inline: true },
+                        { name: '🔊 Salon quitté', value: `<#${oldState.channelId}> (\`${oldState.channelId}\`)`, inline: true },
+                        { name: '⏱️ Durée de connexion', value: durationStr, inline: false },
+                        { name: '⏰ Heure de déconnexion', value: new Date(timestamp).toLocaleString(), inline: false }
+                    ],
+                    author: {
+                        name: member.user.tag,
+                        iconURL: member.user.displayAvatarURL({ dynamic: true })
+                    }
+                }, 'server');
+
+                this.voiceStates.delete(member.id);
+            }
+        }
+        // Changement de salon vocal
+        else if (oldState.channelId !== newState.channelId) {
+            this.sendLog(member.guild, {
+                title: '🎙️ Changement de salon vocal',
+                description: `## ${member.user.tag} a changé de salon vocal 🎙️`,
+                logType: 'voice',
+                fields: [
+                    { name: '👤 Membre', value: `<@${member.id}> (\`${member.id}\`)`, inline: true },
+                    { name: '📤 Ancien salon', value: `<#${oldState.channelId}> (\`${oldState.channelId}\`)`, inline: true },
+                    { name: '📥 Nouveau salon', value: `<#${newState.channelId}> (\`${newState.channelId}\`)`, inline: true },
+                    { name: '⏰ Heure du changement', value: new Date(timestamp).toLocaleString(), inline: false }
+                ],
+                author: {
+                    name: member.user.tag,
+                    iconURL: member.user.displayAvatarURL({ dynamic: true })
+                }
+            }, 'server');
+
+            this.voiceStates.set(member.id, {
+                channelId: newState.channelId,
+                joinTime: timestamp
+            });
+        }
+    }
+
+    // Threads
+    async handleThreadCreate(thread) {
+        console.log(`Thread create event triggered for thread: ${thread.id}`);
+        const auditLogs = await thread.guild.fetchAuditLogs({
+            type: AuditLogEvent.ThreadCreate,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        await this.sendLog(thread.guild, {
+            title: '🧵 Nouveau thread créé',
+            description: `## Un nouveau thread a été créé dans <#${thread.parentId}>`,
+            logType: 'thread',
             fields: [
-                { name: 'ID', value: `\`\`${member.id}\`\``, inline: false },
-                { name: 'A rejoint le', value: member.joinedAt?.toLocaleDateString() || 'Inconnu', inline: false },
-                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: false },
-                { name: 'Rôles', value: roles, inline: false },
-                { name: 'Surnom', value: member.nickname || 'Aucun', inline: false }
-            ],
-            thumbnail: member.user.displayAvatarURL({ dynamic: true })
+                { name: '📝 Nom', value: thread.name, inline: true },
+                { name: '🔑 ID', value: `\`${thread.id}\``, inline: true },
+                { name: '👤 Créé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: true },
+                { name: '📂 Canal parent', value: `<#${thread.parentId}>`, inline: true },
+                { name: '⏰ Auto-archive', value: `${thread.autoArchiveDuration} minutes`, inline: true },
+                { name: '🔒 Privé', value: thread.type === 12 ? 'Oui' : 'Non', inline: true }
+            ]
         }, 'server');
     }
 
-    // Gestion des salons
-    async handleChannelEvents(channel, action, oldChannel = null) {
-        const actionTypes = {
-            create: { title: '📝 Création de salon', color: 0x2ecc71 },
-            delete: { title: '🗑️ Suppression de salon', color: 0xe74c3c },
-            update: { title: '✏️ Modification de salon', color: 0xf1c40f }
-        };
-
-        const auditLogs = await channel.guild.fetchAuditLogs({
-            type: action === 'create' ? AuditLogEvent.ChannelCreate :
-                  action === 'delete' ? AuditLogEvent.ChannelDelete :
-                  AuditLogEvent.ChannelUpdate,
+    async handleThreadDelete(thread) {
+        console.log(`Thread delete event triggered for thread: ${thread.id}`);
+        const auditLogs = await thread.guild.fetchAuditLogs({
+            type: AuditLogEvent.ThreadDelete,
             limit: 1
         }).catch(() => null);
 
         const executor = auditLogs?.entries.first()?.executor;
-        const changes = [];
 
-        if (action === 'update' && oldChannel) {
-            if (oldChannel.name !== channel.name) {
-                changes.push({ name: 'Nom', value: `${oldChannel.name} → ${channel.name}` });
-            }
-            if (oldChannel.type !== channel.type) {
-                changes.push({ name: 'Type', value: `${oldChannel.type} → ${channel.type}` });
-            }
-            if (oldChannel.topic !== channel.topic) {
-                changes.push({ name: 'Sujet', value: `${oldChannel.topic || 'Aucun'} → ${channel.topic || 'Aucun'}` });
-            }
-            if (oldChannel.nsfw !== channel.nsfw) {
-                changes.push({ name: 'NSFW', value: `${oldChannel.nsfw} → ${channel.nsfw}` });
-            }
-            if (oldChannel.rateLimitPerUser !== channel.rateLimitPerUser) {
-                changes.push({ name: 'Mode lent', value: `${oldChannel.rateLimitPerUser}s → ${channel.rateLimitPerUser}s` });
-            }
-        }
-
-        if(changes.length < 0){
-            await this.sendLog(channel.guild, {
-                title: actionTypes[action].title,
-                description: `### Salon ${action === 'delete' ? 'supprimé' : `<#${channel.id}>`}`,
-                color: actionTypes[action].color,
-                fields: [
-                    { name: 'Nom', value: channel.name, inline: true },
-                    { name: 'Type', value: channel.type, inline: true },
-                    { name: 'ID', value: `\`\`${channel.id}\`\``, inline: true },
-                    { name: 'Exécuté par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false },
-                    ...(changes.length > 0 ? changes : [])
-                ]
-            }, 'edit');
-        }
-    }
-
-    // Gestion des rôles
-    async handleRoleEvents(role, action, oldRole = null) {
-        const actionTypes = {
-            create: { title: '👑 Création de rôle', color: 0x2ecc71 },
-            delete: { title: '🗑️ Suppression de rôle', color: 0xe74c3c },
-            update: { title: '✏️ Modification de rôle', color: 0xf1c40f }
-        };
-
-        const auditLogs = await role.guild.fetchAuditLogs({
-            type: action === 'create' ? AuditLogEvent.RoleCreate :
-                  action === 'delete' ? AuditLogEvent.RoleDelete :
-                  AuditLogEvent.RoleUpdate,
-            limit: 1
-        }).catch(() => null);
-
-        const executor = auditLogs?.entries.first()?.executor;
-        const changes = [];
-
-        if (action === 'update' && oldRole) {
-            if (oldRole.name !== role.name) {
-                changes.push({ name: 'Nom', value: `${oldRole.name} → ${role.name}` });
-            }
-            if (oldRole.color !== role.color) {
-                changes.push({ name: 'Couleur', value: `${oldRole.color.toString(16)} → ${role.color.toString(16)}` });
-            }
-            if (oldRole.hoist !== role.hoist) {
-                changes.push({ name: 'Affiché séparément', value: `${oldRole.hoist} → ${role.hoist}` });
-            }
-            if (oldRole.mentionable !== role.mentionable) {
-                changes.push({ name: 'Mentionnable', value: `${oldRole.mentionable} → ${role.mentionable}` });
-            }
-        }
-
-        await this.sendLog(role.guild, {
-            title: actionTypes[action].title,
-            description: `### Rôle ${action === 'delete' ? role.name : `<@&${role.id}>`}`,
-            color: actionTypes[action].color,
+        await this.sendLog(thread.guild, {
+            title: '🗑️ Thread supprimé',
+            description: `## Un thread a été supprimé dans <#${thread.parentId}>`,
+            logType: 'thread',
             fields: [
-                { name: 'Nom', value: role.name, inline: true },
-                { name: 'ID', value: `\`\`${role.id}\`\``, inline: true },
-                { name: 'Couleur', value: `#${role.color.toString(16).padStart(6, '0')}`, inline: true },
-                { name: 'Exécuté par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false },
-                ...(changes.length > 0 ? changes : [])
+                { name: '📝 Nom', value: thread.name, inline: true },
+                { name: '🔑 ID', value: `\`${thread.id}\``, inline: true },
+                { name: '👤 Supprimé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false },
+                { name: '📂 Canal parent', value: `<#${thread.parentId}>`, inline: true }
             ]
-        }, 'edit');
+        }, 'server');
     }
 
-    // Gestion des modifications de permissions
-    async handlePermissionUpdate(target, action, oldPermissions, newPermissions) {
+    async handleThreadUpdate(oldThread, newThread) {
+        console.log(`Thread update event triggered for thread: ${newThread.id}`);
         const changes = [];
-        const isChannel = 'parent' in target;
-    
-        if (oldPermissions && newPermissions) {
-            // Pour les permissions de salon
-            if (isChannel) {
-                // Récupérer toutes les overwrites
-                const oldOverwrites = Array.from(oldPermissions.cache.values());
-                const newOverwrites = Array.from(newPermissions.cache.values());
-    
-                // Comparer chaque overwrite
-                for (const newOverwrite of newOverwrites) {
-                    const oldOverwrite = oldOverwrites.find(o => o.id === newOverwrite.id);
-                    if (!oldOverwrite) continue;
-    
-                    const oldAllow = oldOverwrite.allow;
-                    const oldDeny = oldOverwrite.deny;
-                    const newAllow = newOverwrite.allow;
-                    const newDeny = newOverwrite.deny;
-    
-                    // Vérifier les changements de permissions
-                    Object.keys(PermissionsBitField.Flags).forEach(perm => {
-                        const flag = PermissionsBitField.Flags[perm];
-                        const oldValue = oldAllow.has(flag) ? '✅' : (oldDeny.has(flag) ? '❌' : '➖');
-                        const newValue = newAllow.has(flag) ? '✅' : (newDeny.has(flag) ? '❌' : '➖');
-    
-                        if (oldValue !== newValue) {
-                            changes.push({
-                                name: `${perm}`,
-                                value: `${oldValue} → ${newValue}`,
-                                inline: false
-                            });
-                        }
-                    });
-                }
-            } 
-            // Pour les permissions de rôle
-            else {
-                const oldPerms = oldPermissions;
-                const newPerms = newPermissions;
-    
-                Object.keys(PermissionsBitField.Flags).forEach(perm => {
-                    const flag = PermissionsBitField.Flags[perm];
-                    if (oldPerms.has(flag) !== newPerms.has(flag)) {
-                        changes.push({
-                            name: perm,
-                            value: `${oldPerms.has(flag) ? '✅' : '❌'} → ${newPerms.has(flag) ? '✅' : '❌'}`,
-                            inline: false
-                        });
-                    }
-                });
-            }
+        const auditLogs = await newThread.guild.fetchAuditLogs({
+            type: AuditLogEvent.ThreadUpdate,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        if (oldThread.name !== newThread.name) {
+            changes.push({ name: '📝 Nom', value: `\`${oldThread.name}\` → \`${newThread.name}\`` });
         }
-    
+        if (oldThread.archived !== newThread.archived) {
+            changes.push({ name: '📦 État', value: newThread.archived ? '`Archivé`' : '`Désarchivé`' });
+        }
+        if (oldThread.locked !== newThread.locked) {
+            changes.push({ name: '🔒 Verrouillage', value: newThread.locked ? '`Verrouillé`' : '`Déverrouillé`' });
+        }
+        if (oldThread.autoArchiveDuration !== newThread.autoArchiveDuration) {
+            changes.push({ name: '⏰ Auto-archive', value: `\`${oldThread.autoArchiveDuration}\` → \`${newThread.autoArchiveDuration}\` minutes` });
+        }
+
         if (changes.length > 0) {
-            const auditLogs = await target.guild.fetchAuditLogs({
-                type: isChannel ? AuditLogEvent.ChannelOverwriteUpdate : AuditLogEvent.RoleUpdate,
-                limit: 1
-            }).catch(() => null);
-    
-            const executor = auditLogs?.entries.first()?.executor;
-    
-            await this.sendLog(target.guild, {
-                title: `🔒 Modifications des permissions ${isChannel ? 'du salon' : 'du rôle'}`,
-                description: `### Modifications des permissions pour ${isChannel ? `<#${target.id}>` : `<@&${target.id}>`}`,
-                color: 0xf1c40f,
+            await this.sendLog(newThread.guild, {
+                title: '✏️ Thread modifié',
+                description: `## Un thread a été modifié dans <#${newThread.parentId}>`,
+                logType: 'thread',
                 fields: [
-                    { name: 'Nom', value: target.name, inline: false },
-                    { name: 'ID', value: `\`\`${target.id}\`\``, inline: false },
-                    { name: 'Modifié par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false },
-                    { name: '⎯'.repeat(20), value: '**Modifications des permissions**', inline: false },
+                    { name: '🧵 Thread', value: `<#${newThread.id}>`, inline: true },
+                    { name: '🔑 ID', value: `\`${newThread.id}\``, inline: true },
+                    { name: '👤 Modifié par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false },
                     ...changes
-                ]
-            }, 'edit');
-        }
-    }
-
-    // Gestion des modifications du serveur
-    async handleGuildUpdate(oldGuild, newGuild) {
-        const changes = [];
-
-        if (oldGuild.name !== newGuild.name) {
-            changes.push({ name: 'Nom', value: `${oldGuild.name} → ${newGuild.name}` });
-        }
-        if (oldGuild.iconURL() !== newGuild.iconURL()) {
-            changes.push({ name: 'Icône', value: 'L\'icône du serveur a été modifiée' });
-        }
-        if (oldGuild.bannerURL() !== newGuild.bannerURL()) {
-            changes.push({ name: 'Bannière', value: 'La bannière du serveur a été modifiée' });
-        }
-        if (oldGuild.description !== newGuild.description) {
-            changes.push({ name: 'Description', value: `${oldGuild.description || 'Aucune'} → ${newGuild.description || 'Aucune'}` });
-        }
-        if (oldGuild.verificationLevel !== newGuild.verificationLevel) {
-            changes.push({ name: 'Niveau de vérification', value: `${oldGuild.verificationLevel} → ${newGuild.verificationLevel}` });
-        }
-        if (oldGuild.explicitContentFilter !== newGuild.explicitContentFilter) {
-            changes.push({ name: 'Filtre de contenu', value: `${oldGuild.explicitContentFilter} → ${newGuild.explicitContentFilter}` });
-        }
-        if (oldGuild.systemChannel !== newGuild.systemChannel) {
-            changes.push({ name: 'Salon système', value: `${oldGuild.systemChannel || 'Aucun'} → ${newGuild.systemChannel || 'Aucun'}` });
-        }
-        if (oldGuild.afkChannel !== newGuild.afkChannel) {
-            changes.push({ name: 'Salon AFK', value: `${oldGuild.afkChannel || 'Aucun'} → ${newGuild.afkChannel || 'Aucun'}` });
-        }
-        if (oldGuild.afkTimeout !== newGuild.afkTimeout) {
-            changes.push({ name: 'Délai AFK', value: `${oldGuild.afkTimeout}s → ${newGuild.afkTimeout}s` });
-        }
-        if (oldGuild.preferredLocale !== newGuild.preferredLocale) {
-            changes.push({ name: 'Langue', value: `${oldGuild.preferredLocale} → ${newGuild.preferredLocale}` });
-        }
-        if (oldGuild.premiumTier !== newGuild.premiumTier) {
-            changes.push({ name: 'Niveau de boost', value: `${oldGuild.premiumTier} → ${newGuild.premiumTier}` });
-        }
-
-        if (changes.length > 0) {
-            const auditLogs = await newGuild.fetchAuditLogs({
-                type: AuditLogEvent.GuildUpdate,
-                limit: 1
-            }).catch(() => null);
-
-            const executor = auditLogs?.entries.first()?.executor;
-
-            await this.sendLog(newGuild, {
-                title: '⚙️ Modifications du serveur',
-                description: '### Le serveur a été modifié',
-                color: 0xf1c40f,
-                fields: [
-                    ...changes,
-                    { name: 'Modifié par', value: executor ? `<@${executor.id}> \`\`${executor.id}\`\`` : 'Inconnu', inline: false }
                 ]
             }, 'server');
         }
     }
 
-    // Gestion des messages
-    async handleMessageDelete(message) {
-        const auditLogs = await message.guild.fetchAuditLogs({
-            type: AuditLogEvent.MessageDelete,
+    // Salons
+    async handleChannelCreate(channel) {
+        if (!channel.guild) return;
+        console.log(`Channel create event triggered for channel: ${channel.id}`);
+
+        const auditLogs = await channel.guild.fetchAuditLogs({
+            type: AuditLogEvent.ChannelCreate,
             limit: 1
         }).catch(() => null);
 
         const executor = auditLogs?.entries.first()?.executor;
-        let deletedBy = null;
-        if (executor && executor?.id && message.author?.id) {
-            const deletedBy = executor && executor.id !== message.author.id ? 
-            `\nSupprimé par: <@${executor.id}> \`\`${executor.id}\`\`` : '';
+
+        const fields = [
+            { name: '📝 Nom', value: channel.name, inline: true },
+            { name: '🔑 ID', value: `\`${channel.id}\``, inline: true },
+            { name: '📁 Type', value: channel.type.toString(), inline: true },
+            { name: '👤 Créé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false }
+        ];
+
+        if (channel.parent) {
+            fields.push({ name: '📂 Catégorie', value: `${channel.parent.name} (\`${channel.parent.id}\`)`, inline: false });
         }
-        let userIdentifiant = null;
-        if(message.author?.id){
-            userIdentifiant = `<@${message.author.id}>`;
-        }else{
-            return;
+
+        if (channel.topic) {
+            fields.push({ name: '📋 Description', value: channel.topic, inline: false });
         }
+
+        await this.sendLog(channel.guild, {
+            title: '📝 Nouveau salon créé',
+            description: `## Un nouveau salon a été créé : <#${channel.id}>`,
+            logType: 'channel',
+            fields
+        }, 'server');
+    }
+
+    async handleChannelDelete(channel) {
+        if (!channel.guild) return;
+        console.log(`Channel delete event triggered for channel: ${channel.id}`);
+
+        const auditLogs = await channel.guild.fetchAuditLogs({
+            type: AuditLogEvent.ChannelDelete,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        const fields = [
+            { name: '📝 Nom', value: channel.name, inline: true },
+            { name: '🔑 ID', value: `\`${channel.id}\``, inline: true },
+            { name: '📁 Type', value: channel.type.toString(), inline: true },
+            { name: '👤 Supprimé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false }
+        ];
+
+        if (channel.parent) {
+            fields.push({ name: '📂 Catégorie', value: `${channel.parent.name} (\`${channel.parent.id}\`)`, inline: false });
+        }
+
+        await this.sendLog(channel.guild, {
+            title: '🗑️ Salon supprimé',
+            description: `## Un salon a été supprimé`,
+            logType: 'channel',
+            fields
+        }, 'server');
+    }
+
+    async handleChannelUpdate(oldChannel, newChannel) {
+        if (!newChannel.guild) return;
+        console.log(`Channel update event triggered for channel: ${newChannel.id}`);
+
+        const changes = [];
+        const auditLogs = await newChannel.guild.fetchAuditLogs({
+            type: AuditLogEvent.ChannelUpdate,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        if (oldChannel.name !== newChannel.name) {
+            changes.push({ name: '📝 Nom', value: `\`${oldChannel.name}\` → \`${newChannel.name}\`` });
+        }
+
+        if (oldChannel.topic !== newChannel.topic) {
+            changes.push({ name: '📋 Description', value: `\`${oldChannel.topic || 'Aucune'}\` → \`${newChannel.topic || 'Aucune'}\`` });
+        }
+
+        if (oldChannel.nsfw !== newChannel.nsfw) {
+            changes.push({ name: '🔞 NSFW', value: `\`${oldChannel.nsfw}\` → \`${newChannel.nsfw}\`` });
+        }
+
+        if (oldChannel.rateLimitPerUser !== newChannel.rateLimitPerUser) {
+            changes.push({ name: '⏱️ Mode lent', value: `\`${oldChannel.rateLimitPerUser}s\` → \`${newChannel.rateLimitPerUser}s\`` });
+        }
+
+        if (oldChannel.parent?.id !== newChannel.parent?.id) {
+            changes.push({ 
+                name: '📂 Catégorie', 
+                value: `\`${oldChannel.parent?.name || 'Aucune'}\` → \`${newChannel.parent?.name || 'Aucune'}\`` 
+            });
+        }
+
+        if (changes.length > 0) {
+            await this.sendLog(newChannel.guild, {
+                title: '✏️ Salon modifié',
+                description: `## Le salon <#${newChannel.id}> a été modifié`,
+                logType: 'channel',
+                fields: [
+                    { name: '🔑 ID', value: `\`${newChannel.id}\``, inline: true },
+                    { name: '👤 Modifié par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: true },
+                    ...changes
+                ]
+            }, 'server');
+        }
+
+        if (JSON.stringify(oldChannel.permissionOverwrites.cache) !== JSON.stringify(newChannel.permissionOverwrites.cache)) {
+            await this.handlePermissionUpdate(newChannel);
+        }
+    }
+
+    async handlePermissionUpdate(channel) {
+        console.log(`Permission update event triggered for channel: ${channel.id}`);
+    
+    const auditLogs = await channel.guild.fetchAuditLogs({
+        type: AuditLogEvent.ChannelOverwriteUpdate,
+        limit: 1
+    }).catch(() => null);
+
+    console.log('Audit logs fetched:', auditLogs); // Ajout du log pour vérifier si les logs sont récupérés
+
+    if (!auditLogs) {
+        console.error('Impossible de récupérer les logs d’audit.');
+        return;
+    }
+    
+    const logEntry = auditLogs.entries.first();
+    console.log('Log entry found:', logEntry); // Vérifier l'entrée du log
+
+    if (!logEntry) {
+        console.error('Aucune entrée de log trouvée.');
+        return;
+    }
+    
+    const executor = logEntry.executor;
+    const filteredChanges = logEntry.changes || [];
+    console.log(filteredChanges)
+    const changes = filteredChanges.filter(change => {
+        // Vérifier que la valeur 'old' comporte plus de 6 chiffres
+        return String(change.old).length > 5;
+    });
+    const targetId = logEntry.targetId;
+    
+    console.log('Changes:', changes); // Vérifier les changements de permission
+    const affectedOverwrite = channel.permissionOverwrites.cache.get(targetId);
+    let roleOrUser;
+
+    // Si une cible est trouvée dans les overwrites
+    if (affectedOverwrite) {
+        if (affectedOverwrite.type === OverwriteType.Role) {
+            const role = channel.guild.roles.cache.get(affectedOverwrite.id);
+            roleOrUser = role ? `${role.name} \`\`\`${affectedOverwrite.id}\`\`\`` : `Rôle introuvable (${affectedOverwrite.id})`;
+        } else {
+            const user = channel.guild.members.cache.get(affectedOverwrite.id);
+            roleOrUser = user ? `${user.user.username} \`\`\`${affectedOverwrite.id}\`\`\`` : `Utilisateur introuvable (${affectedOverwrite.id})`;
+        }
+    } else if (logEntry.extra) {
+        // Si "extra" est renseigné dans les logs d'audit
+        const extra = logEntry.extra;
+        const role = channel.guild.roles.cache.get(extra.id);
+        roleOrUser = role ? `${role.name} \`\`\`${extra.id}\`\`\`` : `Rôle introuvable (${extra.id})`;
+    } else {
+        // Si aucune information n'est trouvée
+        roleOrUser = 'Inconnu';
+    }
+    // Créer un embed avec les informations des permissions modifiées
+    const embedFields = changes.map(change => {
+        const oldPermissions = new PermissionsBitField(change.old || 0n);
+        const newPermissions = new PermissionsBitField(change.new || 0n);
+    
+        const addedPermissions = newPermissions.toArray().filter(permission => !oldPermissions.has(permission));
+        const removedPermissions = oldPermissions.toArray().filter(permission => !newPermissions.has(permission));
+    
+        // Éviter les doublons dans les permissions ajoutées et supprimées
+        const addedPermissionNames = addedPermissions.map(permission => translatePermission(permission));
+        const removedPermissionNames = removedPermissions.map(permission => translatePermission(permission));
+    
+        // Afficher les logs
+        console.log('Added Permissions:', addedPermissionNames);
+        console.log('Removed Permissions:', removedPermissionNames);
+    
+        // Retourner les champs d'embed
+        return [
+            ...addedPermissionNames.map(permission => ({
+                name: `🔒 ${permission} (${roleOrUser})`,
+                value: `❌ → ✅`,
+                inline: false
+            })),
+            ...removedPermissionNames.map(permission => ({
+                name: `🔒 ${permission} (${roleOrUser})`,
+                value: `✅ → ❌`,
+                inline: false
+            }))
+        ];
+    }).flat();
+    
+    // Vérification pour s'assurer qu'il n'y a pas de doublons dans le résultat final
+    const uniqueEmbedFields = Array.from(new Set(embedFields.map(field => field.name)))
+        .map(name => embedFields.find(field => field.name === name));
+    
+    console.log('Unique Embed Fields:', uniqueEmbedFields);
+    
+    await this.sendLog(channel.guild, {
+        title: '🔒 Permissions modifiées',
+        description: `Les permissions du salon ont été modifiées 🔒`,
+        logType: 'channel',
+        fields: [
+            { name: 'Salon', value: `<#${channel.id}> (\`${channel.id}\`)`, inline: true },
+            { name: 'Modifié par', value: `<@${executor.id}> (\`${executor.id}\`)`, inline: true },
+            ...embedFields
+        ]
+    }, 'server');
+    }
+
+    // Rôles
+    async handleRoleCreate(role) {
+        console.log(`Role create event triggered for role: ${role.id}`);
+        const auditLogs = await role.guild.fetchAuditLogs({
+            type: Event.RoleCreate,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        await this.sendLog(role.guild, {
+            title: '👑 Nouveau rôle créé',
+            description: `### Un nouveau rôle a été créé : <@&${role.id}>`,
+            logType: 'role',
+            fields: [
+                { name: '📝 Nom', value: role.name, inline: true },
+                { name: '🔑 ID', value: `\`${role.id}\``, inline: true },
+                { name: '🎨 Couleur', value: `\`#${role.color.toString(16).padStart(6, '0')}\``, inline: true },
+                { name: '👤 Créé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false },
+                { name: '🏷️ Mentionnable', value: role.mentionable ? 'Oui' : 'Non', inline: true },
+                { name: '📊 Affiché séparément', value: role.hoist ? 'Oui' : 'Non', inline: true }
+            ]
+        }, 'server');
+    }
+
+    async handleRoleDelete(role) {
+        console.log(`Role delete event triggered for role: ${role.id}`);
+        const auditLogs = await role.guild.fetchAuditLogs({
+            type: AuditLogEvent.RoleDelete,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        await this.sendLog(role.guild, {
+            title: '🗑️ Rôle supprimé',
+            description: `### Un rôle a été supprimé`,
+            logType: 'role',
+            fields: [
+                { name: '📝 Nom', value: role.name, inline: true },
+                { name: '🔑 ID', value: `\`${role.id}\``, inline: true },
+                { name: '🎨 Couleur', value: `\`#${role.color.toString(16).padStart(6, '0')}\``, inline: true },
+                { name: '👤 Supprimé par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: false }
+            ]
+        }, 'server');
+    }
+
+    async handleRoleUpdate(oldRole, newRole) {
+        console.log(`Role update event triggered for role: ${newRole.id}`);
+        const changes = [];
+        const auditLogs = await newRole.guild.fetchAuditLogs({
+            type: AuditLogEvent.RoleUpdate,
+            limit: 1
+        }).catch(() => null);
+
+        const executor = auditLogs?.entries.first()?.executor;
+
+        if (oldRole.name !== newRole.name) {
+            changes.push({ name: '📝 Nom', value: `\`${oldRole.name}\` → \`${newRole.name}\`` });
+        }
+
+        if (oldRole.color !== newRole.color) {
+            changes.push({ 
+                name: '🎨 Couleur', 
+                value: `\`#${oldRole.color.toString(16).padStart(6, '0')}\` → \`#${newRole.color.toString(16).padStart(6, '0')}\`` 
+            });
+        }
+
+        if (oldRole.hoist !== newRole.hoist) {
+            changes.push({ name: '📊 Affiché séparément', value: `\`${oldRole.hoist}\` → \`${newRole.hoist}\`` });
+        }
+
+        if (oldRole.mentionable !== newRole.mentionable) {
+            changes.push({ name: '🏷️ Mentionnable', value: `\`${oldRole.mentionable}\` → \`${newRole.mentionable}\`` });
+        }
+
+        const oldPerms = oldRole.permissions.bitfield;
+        const newPerms = newRole.permissions.bitfield;
         
-        if(deletedBy === null){
-            return console.log('Pas d\'utilisateur associès.');
-        } else if (userIdentifiant === null){
-            return console.log('Pas d\'utilisateur associès.');
+        if (oldPerms !== newPerms) {
+            const permChanges = [];
+            Object.keys(PermissionsBitField.Flags).forEach(perm => {
+                const flag = PermissionsBitField.Flags[perm];
+                const oldHas = (oldPerms & flag) === flag;
+                const newHas = (newPerms & flag) === flag;
+                
+                if (oldHas !== newHas) {
+                    permChanges.push(`${perm}: ${oldHas ? '✅' : '❌'} → ${newHas ? '✅' : '❌'}`);
+                }
+            });
+            
+            if (permChanges.length > 0) {
+                changes.push({ name: '🔒 Permissions modifiées', value: permChanges.join('\n') });
+            }
         }
-        await this.sendLog(message.guild, {
-            title: '🗑️ Message supprimé',
-            description: `### Message de ${userIdentifiant} supprimé dans <#${message.channel.id}>${deletedBy}`,
-            color: 0xe74c3c,
-            fields: [
-                { name: 'Contenu', value: message.content || 'Aucun contenu texte', inline: false },
-                { name: 'Auteur', value: `${userIdentifiant} \`\`${userIdentifiant}\`\``, inline: true },
-                { name: 'Canal', value: `<#${message.channel.id}> \`\`${message.channel.id}\`\``, inline: true }
-            ]
-        }, 'edit');
+
+        if (changes.length > 0) {
+            await this.sendLog(newRole.guild, {
+                title: '✏️ Rôle modifié',
+                description: `### Le rôle <@&${newRole.id}> a été modifié`,
+                logType: 'role',
+                fields: [
+                    { name: '🔑 ID', value: `\`${newRole.id}\``, inline: true },
+                    { name: '👤 Modifié par', value: executor ? `<@${executor.id}> (\`${executor.id}\`)` : '*Inconnu*', inline: true },
+                    ...changes
+                ]
+            }, 'server');
+        }
     }
 
-    async handleMessageUpdate(oldMessage, newMessage) {
-        if (newMessage.author.bot) return;
-        if (oldMessage.content === newMessage.content) return;
-
-        await this.sendLog(newMessage.guild, {
-            title: '✏️ Message modifié',
-            description: `### Message modifié dans <#${newMessage.channel.id}>`,
-            color: 0xf1c40f,
-            fields: [
-                { name: 'Avant', value: oldMessage.content || 'Aucun contenu', inline: false },
-                { name: 'Après', value: newMessage.content || 'Aucun contenu', inline: false },
-                { name: 'Auteur', value: `<@${newMessage.author.id}> \`\`${newMessage.author.id}\`\``, inline: true },
-                { name: 'Canal', value: `<#${newMessage.channel.id}> \`\`${newMessage.channel.id}\`\``, inline: true },
-                { name: 'Lien', value: `[Aller au message](${newMessage.url})`, inline: false }
-            ]
-        }, 'edit');
-    }
-
-    // Initialisation des événements
     initialize(client) {
-        // Événements des membres
-        client.on(Events.GuildMemberAdd, member => this.handleMemberJoin(member));
-        client.on('guildMemberRemove', async member => {
-            console.log('leave guild')
-            await this.handleMemberLeave(member);
+        console.log('Initializing LogSystem events');
+
+        // Messages
+        client.on(Events.MessageDelete, message => {
+            console.log('Message delete event received');
+            if (message.guild) this.handleMessageDelete(message);
         });
 
-        // Événements des salons
-        client.on(Events.ChannelCreate, channel => this.handleChannelEvents(channel, 'create'));
-        client.on(Events.ChannelDelete, channel => this.handleChannelEvents(channel, 'delete'));
+        client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
+            console.log('Message update event received');
+            if (newMessage.guild) this.handleMessageUpdate(oldMessage, newMessage);
+        });
+
+        // Membres
+        client.on(Events.GuildMemberAdd, member => {
+            console.log('Member add event received');
+            this.handleMemberJoin(member);
+        });
+
+        client.on(Events.GuildMemberRemove, member => {
+            console.log('Member remove event received');
+            this.handleMemberLeave(member);
+        });
+
+        // Vocaux
+        client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+            console.log('Voice state update event received');
+            this.handleVoiceStateUpdate(oldState, newState);
+        });
+
+        // Threads
+        client.on(Events.ThreadCreate, thread => {
+            console.log('Thread create event received');
+            this.handleThreadCreate(thread);
+        });
+
+        client.on(Events.ThreadDelete, thread => {
+            console.log('Thread delete event received');
+            this.handleThreadDelete(thread);
+        });
+
+        client.on(Events.ThreadUpdate, (oldThread, newThread) => {
+            console.log('Thread update event received');
+            this.handleThreadUpdate(oldThread, newThread);
+        });
+ 
+        // Salons
+        client.on(Events.ChannelCreate, channel => {
+            console.log('Channel create event received');
+            this.handleChannelCreate(channel);
+        });
+
+        client.on(Events.ChannelDelete, channel => {
+            console.log('Channel delete event received');
+            this.handleChannelDelete(channel);
+        });
+
         client.on(Events.ChannelUpdate, (oldChannel, newChannel) => {
-            this.handleChannelEvents(newChannel, 'update', oldChannel);
-            if (oldChannel.permissionOverwrites !== newChannel.permissionOverwrites) {
-                this.handlePermissionUpdate(newChannel, 'update', oldChannel.permissionOverwrites, newChannel.permissionOverwrites);
-            }
+            console.log('Channel update event received');
+            this.handleChannelUpdate(oldChannel, newChannel);
         });
 
-        // Événements des rôles
-        client.on(Events.RoleCreate, role => this.handleRoleEvents(role, 'create'));
-        client.on(Events.RoleDelete, role => this.handleRoleEvents(role, 'delete'));
+        // Rôles
+        client.on(Events.RoleCreate, role => {
+            console.log('Role create event received');
+            this.handleRoleCreate(role);
+        });
+
+        client.on(Events.RoleDelete, role => {
+            console.log('Role delete event received');
+            this.handleRoleDelete(role);
+        });
+
         client.on(Events.RoleUpdate, (oldRole, newRole) => {
-            this.handleRoleEvents(newRole, 'update', oldRole);
-            if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
-                this.handlePermissionUpdate(newRole, 'update', oldRole.permissions, newRole.permissions);
-            }
+            console.log('Role update event received');
+            this.handleRoleUpdate(oldRole, newRole);
         });
 
-        // Événements des messages
-        client.on(Events.MessageDelete, message => this.handleMessageDelete(message));
-        client.on(Events.MessageUpdate, (oldMessage, newMessage) => 
-            this.handleMessageUpdate(oldMessage, newMessage));
-
-        // Modifications du serveur
-        client.on(Events.GuildUpdate, (oldGuild, newGuild) => 
-            this.handleGuildUpdate(oldGuild, newGuild));
+        console.log('LogSystem events initialized');
     }
 }
 

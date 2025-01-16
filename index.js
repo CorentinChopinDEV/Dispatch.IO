@@ -11,7 +11,7 @@ import dotenv from 'dotenv';
 import { userAdd } from './build/userAdd.js';
 import  interactionCREATE  from './build/interaction-create.js';
 import premiumPing from './src/guild/french-corp/premium-ping.js';
-import suggestionReact from './src/guild/french-corp/suggestion-react.js';
+import { handleInteractionEvent, handleMessageEvent } from './src/guild/french-corp/suggestion-react.js';
 import suggestion from './src/guild/french-corp/suggestion.js';
 import protectionBOTCheck from './src/guild/french-corp/douanier.js';
 import AntiRaidSystem from './build/anti-raid.js';
@@ -31,7 +31,8 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.GuildPresences
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildModeration
     ],
     partials: [Partials.Message, Partials.Reaction, Partials.Channel]
 });
@@ -75,7 +76,11 @@ async function checkAndRemoveRoles() {
 
 client.once('ready', async () => {
     await antiRaid.initialize(client);
-    await logSystem.initialize(client);
+    try{
+        await logSystem.initialize(client);
+    }catch (err){
+        console.log('Log system error:' + err)
+    }
     await client.application.commands.set([]);
     const commands = [];
     await loadCommands(commandsPath, client, commands);
@@ -238,4 +243,7 @@ client.on('messageCreate', async (message) => {
         console.error('Erreur lors du traitement du message:', error);
     }
 });
+client.on('messageCreate', handleMessageEvent);
+client.on('interactionCreate', handleInteractionEvent);
+
 client.login(process.env.TOKEN);

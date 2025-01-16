@@ -61,7 +61,7 @@ module.exports = {
         }
 
         // Informations supplémentaires
-        const botVersion = '0.9.3';
+        const botVersion = '0.9.5';
         const creatorID = '1215253116224671748';
         const supportServerURL = 'https://discord.gg/KpcppTQcaM';
 

@@ -1,22 +1,12 @@
 [
     {
-        "date": "15-01-2025",
-        "version": "0.9.4",
+        "date": "16-01-2025",
+        "version": "0.9.5",
         "title": "Migration de version",
         "author": "CodanoTW",
         "changes": [
-            "Migration vers la 0.9.4",
-            "Pour le resp.support ajout d'une fonction qui permet d'envoyer un message en mp quand un BDA Premium se ferme.",
-            "Ajouts de 2 mini jeux (Devine 'Qui permet de devinez un nombre' et quiz.",
-            "Correction du bug de la fonction personnalisé noname automatique.",
-            "Correctif apportès sur les logs messages.",
-            "Correctif sur la fonction rôle react qui retourné à une erreur à chaque intérraction react.",
-            "Création d'une commande sondage.",
-            "Correctifs mineurs sur la fonction LOGS",
-            "Résolution de problèmes lié avec la commande création-embed",
-            "Résolution des questions répétitive dans le mini-jeux quiz.",
-            "Correction d'un bug avec la commande Gemini",
-            "Ajout de la commande /reset-violation-pseudo"
+            "Migration vers la version 0.9.6",
+            "Modifications complète du système de logs."
         ]
     }
 ]

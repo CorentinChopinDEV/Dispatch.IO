@@ -157,7 +157,7 @@ class AntiRaidSystem {
                             fields: [
                                 { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
                                 { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
-                                { name: 'Membre', value: member.user.tag, inline: true },
+                                { name: 'Membre', value: `<@${member.user.id}>\`\`${member.user.id}\`\``, inline: true },
                                 { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
                                 { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
                             ]

@@ -1,5 +1,5 @@
 # Dispatch.IO Bienvenue
-## Numéro de build: Dispatch.IO -> 0.9.4 beta (58 Commandes) (5 Fonctions personnalisé)
+## Numéro de build: Dispatch.IO -> 0.9.5 beta (59 Commandes) (5 Fonctions personnalisé)
 ## Site internet:
 https://dispatchio.netlify.app
 ## Discord support
