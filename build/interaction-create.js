@@ -56,6 +56,7 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('devine') &&
                 !interaction.commandName.includes('quiz') &&
                 !interaction.commandName.includes('sondage') &&
+                !interaction.commandName.includes('giveaway') &&
                 !interaction.commandName.includes('pfc') &&
                 !interaction.commandName.includes('add-xp') &&
                 !interaction.commandName.includes('leaderboard') &&
