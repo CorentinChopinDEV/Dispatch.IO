@@ -56,7 +56,12 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('devine') &&
                 !interaction.commandName.includes('quiz') &&
                 !interaction.commandName.includes('sondage') &&
-                !interaction.commandName.includes('pfc')
+                !interaction.commandName.includes('pfc') &&
+                !interaction.commandName.includes('add-xp') &&
+                !interaction.commandName.includes('leaderboard') &&
+                !interaction.commandName.includes('reset-levels') &&
+                !interaction.commandName.includes('remove-xp') &&
+                !interaction.commandName.includes('rank')
             );
               
               if (isValidCommand) {

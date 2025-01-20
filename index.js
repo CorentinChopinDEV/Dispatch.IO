@@ -18,6 +18,7 @@ import AntiRaidSystem from './build/anti-raid.js';
 import LogSystem from './build/log-system.js';
 import geminiText from './build/gemini-text.js';
 import premiumClose from './src/guild/french-corp/premium-end.js';
+import LevelingSystem from './build/level-system.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +43,7 @@ const logSystem = new LogSystem();
 client.commands = new Collection();
 const commands = [];
 const commandsPath = path.join(__dirname, 'src/commands');
+const levelSystem = new LevelingSystem(client);
 
 loadCommands(commandsPath, client, commands);
 
@@ -114,9 +116,6 @@ client.on('interactionCreate', async interaction => {
 });
 client.on('messageCreate', async (message) => {
     suggestion(message);
-});
-client.on('messageReactionAdd', async (reaction, user) => {
-    suggestionReact(reaction, user);
 });
 client.on('messageCreate', (message) => {
     const guildId = message.guild.id;
@@ -245,5 +244,15 @@ client.on('messageCreate', async (message) => {
 });
 client.on('messageCreate', handleMessageEvent);
 client.on('interactionCreate', handleInteractionEvent);
+client.on('messageCreate', async (message) => {
+    await levelSystem.handleMessage(message);
+});
 
+client.on('voiceStateUpdate', (oldState, newState) => {
+    if (!oldState.channelId && newState.channelId) {
+        levelSystem.startVoiceTimer(newState.member);
+    } else if (oldState.channelId && !newState.channelId) {
+        levelSystem.stopVoiceTimer(oldState.member);
+    }
+});
 client.login(process.env.TOKEN);

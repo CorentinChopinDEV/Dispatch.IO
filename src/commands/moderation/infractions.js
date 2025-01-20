@@ -107,10 +107,10 @@ module.exports = {
                     { name: '⏰ **Date**', value: new Date(infraction.date).toLocaleString(), inline: false },
                     { name: '👮 **Averti par**', value: `<@${infraction.warnedBy}>`, inline: false }
                 )
-                .setThumbnail('https://i.imgur.com/XO9fkrb.png') // Une icône d'avertissement
+                .setThumbnail('https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdTd4NmR1M2RpeDRhZzlsbTBvNDZ0c24wYnk1aWpocm4xZXE3NWlsdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p9trECnSkrz3xAlmZk/giphy.gif') // Une icône d'avertissement
                 .setFooter({
                     text: `ID Infraction : ${infraction.id}`,
-                    iconURL: 'https://i.imgur.com/Ka1F8LX.png' // Une petite icône discrète pour le footer
+                    iconURL: 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdTd4NmR1M2RpeDRhZzlsbTBvNDZ0c24wYnk1aWpocm4xZXE3NWlsdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p9trECnSkrz3xAlmZk/giphy.gif' // Une petite icône discrète pour le footer
                 });
         
             // Ajout conditionnel des champs

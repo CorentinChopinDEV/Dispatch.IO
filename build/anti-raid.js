@@ -117,18 +117,24 @@ class AntiRaidSystem {
     // Anti Mass Join
     handleMemberJoin(member) {
         if (!this.isAntiRaidEnabled(member.guild.id)) return;
-
+    
         const now = Date.now();
         const recentJoins = this.joinedMembers.get(member.guild.id) || [];
         recentJoins.push({ id: member.id, timestamp: now });
-
+    
         const recentJoinsFiltered = recentJoins.filter(join => now - join.timestamp < 10000);
         this.joinedMembers.set(member.guild.id, recentJoinsFiltered);
-
+    
         const accountAge = now - member.user.createdTimestamp;
-        const suspiciousAccount = accountAge < 7 * 24 * 60 * 60 * 1000;
-
-        if (recentJoinsFiltered.length >= 5 || suspiciousAccount) {
+        const suspiciousAccount = accountAge < 7 * 24 * 60 * 60 * 1000; // Moins de 7 jours
+        const suspiciousFrenchCorp = accountAge < 60 * 24 * 60 * 60 * 1000; // Moins de 60 jours
+    
+        // ID spécifique pour French Corp
+        const frenchCorpGuildId = '1212777500565045258';
+    
+        if (recentJoinsFiltered.length >= 5 || suspiciousAccount || 
+            (member.guild.id === frenchCorpGuildId && suspiciousFrenchCorp)) {
+            
             if (!this.isWhitelisted(member.guild.id, member.id)) {
                 member.guild.members.fetch()
                     .then(members => {
@@ -139,46 +145,39 @@ class AntiRaidSystem {
                                     embeds: [
                                         {
                                             title: "⚠️ Alerts Anti-Raid",
-                                            description: `# Vous êtes suspecté de RAID !!! Vous venez d'être kick de ce serveur.`,
+                                            description: `# Vous êtes suspecté de RAID !!! Vous venez d'être expulsé de ce serveur.`,
                                             color: 0xff0004, // Couleur rouge pour une alerte urgente
                                         }
                                     ]
-                                })
-                                joinedMember.kick('Raid détecté ! ⛔');
+                                });
+                                joinedMember.kick('Compte créé récemment (moins de 60 jours). La protection du serveur est en mode strict.');
                             }
                         });
                     });
-
-                    if(suspiciousAccount){
-                        this.sendLog(member.guild, 'raid', {
-                            title: 'Raid Détecté - Compte suspect ⚠️',
-                            description:
-                                '### Un compte suspect a rejoint (créé récemment)',
-                            fields: [
-                                { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
-                                { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
-                                { name: 'Membre', value: `<@${member.user.id}>\`\`${member.user.id}\`\``, inline: true },
-                                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
-                                { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
-                            ]
-                        }, 'danger');
-                    }else{
-                        this.sendLog(member.guild, 'raid', {
-                            title: 'Raid Détecté - ANTI RAID ACTIF ⛔',
-                            description:
-                                '### Plus de 5 membres ont rejoint en moins de 10 secondes.',
-                            fields: [
-                                { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
-                                { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
-                                { name: 'Membre', value: member.user.tag, inline: true },
-                                { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
-                                { name: 'Raison', value: suspiciousAccount ? 'Compte créé récemment, moins de 7 jours.' : 'Plus de 5 joins rapides détectés.' }
-                            ]
-                        }, 'danger');
-                    }
+    
+                this.sendLog(member.guild, 'raid', {
+                    title: 'Raid Détecté ⚠️',
+                    description: 
+                        member.guild.id === frenchCorpGuildId && suspiciousFrenchCorp 
+                        ? '### Un compte suspect (moins de 60 jours) a été exclue automatiquement.'
+                        : '### Une activité suspecte a été détectée.',
+                    fields: [
+                        { name: 'Nombre de joins', value: recentJoinsFiltered.length.toString() },
+                        { name: 'Âge du compte', value: `${Math.floor(accountAge / (24 * 60 * 60 * 1000))} jours` },
+                        { name: 'Membre', value: `${member.user.tag} \`${member.user.id}\``, inline: true },
+                        { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                        { name: 'Raison', value: 
+                            member.guild.id === frenchCorpGuildId && suspiciousFrenchCorp 
+                            ? 'Compte créé récemment, moins de 60 jours (French Corp stricte).' 
+                            : suspiciousAccount 
+                            ? 'Compte créé récemment, moins de 7 jours.' 
+                            : 'Plus de 5 joins rapides détectés.'
+                        }
+                    ]
+                }, 'danger');
             }
         }
-    }
+    }    
 
     // Anti Bot Add
     async handleBotAdd(guild, member) {
