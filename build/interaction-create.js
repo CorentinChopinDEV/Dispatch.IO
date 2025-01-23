@@ -65,7 +65,8 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('rank') &&
                 !interaction.commandName.includes('noname') &&
                 !interaction.commandName.includes('role-all') &&
-                !interaction.commandName.includes('play')
+                !interaction.commandName.includes('play') &&
+                !interaction.commandName.includes('rgpd')
             );
               
               if (isValidCommand) {
