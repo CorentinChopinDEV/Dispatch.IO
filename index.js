@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection, Partials, ActivityType, AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Partials, ActivityType, AttachmentBuilder, EmbedBuilder, IntentsBitField } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,7 +19,8 @@ import LogSystem from './build/log-system.js';
 import geminiText from './build/gemini-text.js';
 import premiumClose from './src/guild/french-corp/premium-end.js';
 import LevelingSystem from './build/level-system.js';
-import { setupAPIs } from './build/music.js';
+import { Player } from 'discord-player';
+import { DefaultExtractors } from '@discord-player/extractor'
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -36,9 +37,15 @@ const client = new Client({
         GatewayIntentBits.GuildPresences,
         GatewayIntentBits.GuildModeration
     ],
+    intents: new IntentsBitField(3276799),
     partials: [Partials.Message, Partials.Reaction, Partials.Channel]
 });
-
+client.player = new Player (client, {
+    ytdlOptions: {
+        quality: 'highestaudio',
+        highWaterMark: 1 << 25
+}})
+await client.player.extractors.loadMulti(DefaultExtractors);
 const antiRaid = new AntiRaidSystem();
 const logSystem = new LogSystem();
 client.commands = new Collection();
@@ -131,13 +138,6 @@ client.once('ready', async () => {
             }
         }
     });
-    try {
-        await setupAPIs();
-        console.log('Bot prêt à lire de la musique!');
-    } catch (error) {
-        console.error('Erreur lors de l\'initialisation des APIs:', error);
-        process.exit(1);
-    }
 });
 roleReactionHandler(client);
 // Client on Interaction Create
