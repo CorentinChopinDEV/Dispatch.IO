@@ -1,4 +1,4 @@
-const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
 const fs = require('fs');
 const path = require('path');
@@ -312,46 +312,119 @@ class LevelingSystem {
             });
         }
     }
-
-    async getLeaderboard(interaction) {
+        
+    async getLeaderboard(interaction, guildData) {
         if (!interaction?.guildId) {
             return interaction.reply({ content: 'Une erreur est survenue.', ephemeral: true });
         }
-
+    
         const data = this.loadGuildData(interaction.guildId);
         const sortedUsers = Object.entries(data.users)
-            .sort(([, a], [, b]) => b.xp - a.xp)
-            .slice(0, 10);
-
-        const embed = new EmbedBuilder()
-            .setTitle('🏆 Classement')
-            .setColor('#0099ff');
-
-        try {
+            .sort(([, a], [, b]) => b.xp - a.xp);
+    
+        const usersPerPage = 10;
+        const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
+        let currentPage = 0;
+    
+        // Trouver le rang de l'utilisateur exécutant la commande
+        const userId = interaction.user.id;
+        const userRank = sortedUsers.findIndex(([id]) => id === userId) + 1;
+        const userData = sortedUsers.find(([id]) => id === userId)?.[1];
+        const userLevel = userData ? this.calculateLevel(userData.xp) : 0;
+        const nextLevelXP = userData ? this.calculateXpForNextLevel(userLevel) : 0;
+    
+        const generateEmbed = async (page) => {
+            const start = page * usersPerPage;
+            const end = start + usersPerPage;
+            const usersOnPage = sortedUsers.slice(start, end);
+    
+            const embed = new EmbedBuilder()
+                .setTitle('🏆 Classement des utilisateurs')
+                .setColor(guildData.botColor || '#f40076')
+                .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
+                .setFooter({ text: `Page ${page + 1} sur ${totalPages}` });
+    
             let description = '';
-            for (const [userId, userData] of sortedUsers) {
+    
+            // Ajouter le rang de l'utilisateur exécutant la commande en haut de l'embed
+            if (userData) {
+                description += `### 👤 Vous êtes #${userRank} - Niveau ${userLevel} (${userData.xp}/${nextLevelXP} XP)\n\n`;
+            } else {
+                description += `👤 Vous n'avez pas encore de position dans le classement.\n\n`;
+            }
+    
+            // Ajouter le reste des utilisateurs pour la page actuelle
+            for (const [index, [id, data]] of usersOnPage.entries()) {
                 try {
-                    const user = await interaction.client.users.fetch(userId);
-                    const level = this.calculateLevel(userData.xp);
-                    const nextLevelXP = this.calculateXpForNextLevel(level);
-                    description += `${user.tag} - Niveau ${level} (${userData.xp}/${nextLevelXP} XP)\n`;
+                    const user = await interaction.client.users.fetch(id);
+                    const level = this.calculateLevel(data.xp);
+                    const nextXP = this.calculateXpForNextLevel(level);
+                    description += `**#${start + index + 1}** ${user.displayName} - Niv. ${level} (${data.xp} XP)\n`;
                 } catch (error) {
-                    console.error(`Error fetching user ${userId}:`, error);
-                    description += `Utilisateur inconnu - Niveau ${this.calculateLevel(userData.xp)} (${userData.xp} XP)\n`;
+                    console.error(`Error fetching user ${id}:`, error);
+                    const level = this.calculateLevel(data.xp);
+                    description += `**#${start + index + 1}** Utilisateur inconnu - Niveau ${level} (${data.xp} XP)\n`;
                 }
             }
-
+    
             embed.setDescription(description || 'Aucune donnée disponible');
-            await interaction.reply({ embeds: [embed] });
-        } catch (error) {
-            console.error('Error generating leaderboard:', error);
-            await interaction.reply({ 
-                content: 'Une erreur est survenue lors de la génération du classement.', 
-                ephemeral: true 
+            return embed;
+        };
+    
+        const generateButtons = (page) => {
+            return new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('prev_page')
+                    .setLabel('◀️ Précédent')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(page === 0),
+    
+                new ButtonBuilder()
+                    .setCustomId('next_page')
+                    .setLabel('▶️ Suivant')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(page === totalPages - 1)
+            );
+        };
+    
+        const embed = await generateEmbed(currentPage);
+        const buttons = generateButtons(currentPage);
+    
+        const message = await interaction.reply({
+            embeds: [embed],
+            components: [buttons],
+            fetchReply: true,
+        });
+    
+        const collector = message.createMessageComponentCollector({
+            filter: (i) => i.user.id === interaction.user.id,
+            time: 60000,
+        });
+    
+        collector.on('collect', async (i) => {
+            if (i.customId === 'prev_page') {
+                currentPage--;
+            } else if (i.customId === 'next_page') {
+                currentPage++;
+            }
+    
+            const updatedEmbed = await generateEmbed(currentPage);
+            const updatedButtons = generateButtons(currentPage);
+    
+            await i.update({
+                embeds: [updatedEmbed],
+                components: [updatedButtons],
             });
-        }
+        });
+    
+        collector.on('end', async () => {
+            if (message.editable) {
+                await message.edit({ components: [] });
+            }
+        });
     }
-
+    
+    
     async resetLevels(interaction) {
         if (!interaction?.guildId || !interaction?.member?.permissions.has('Administrator')) {
             return interaction.reply({ 

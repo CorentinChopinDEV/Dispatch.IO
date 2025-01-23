@@ -52,6 +52,8 @@ module.exports = {
                     const allowedCharacters = /^[a-zA-Z0-9]+$/;
                     if (!allowedCharacters.test(newName)){
                         await interaction.reply({content: 'Votre pseudo contient un charactères spécial, merci de le modifié.', ephemeral: true})
+                    }else if (newName === 'MonPseudo') {
+                        await interaction.reply({content: 'Votre pseudo ne peut pas être MonPseudo, merci de le modifié.', ephemeral: true})
                     }else{
                         await interaction.member.setNickname(newName);
                         await interaction.reply({

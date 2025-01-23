@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection, Partials, ActivityType, AttachmentBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Partials, ActivityType, AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,6 +19,7 @@ import LogSystem from './build/log-system.js';
 import geminiText from './build/gemini-text.js';
 import premiumClose from './src/guild/french-corp/premium-end.js';
 import LevelingSystem from './build/level-system.js';
+import { setupAPIs } from './build/music.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -44,7 +45,7 @@ client.commands = new Collection();
 const commands = [];
 const commandsPath = path.join(__dirname, 'src/commands');
 const levelSystem = new LevelingSystem(client);
-
+const queue = new Collection();
 loadCommands(commandsPath, client, commands);
 
 //Ceci à passer dans un autre fichier
@@ -107,7 +108,36 @@ client.once('ready', async () => {
     setInterval(checkAndRemoveRoles, 10 * 1000);
     const sondageCommand = client.commands.get('sondage');
     await sondageCommand.restorePolls(client);
-    
+    client.guilds.cache.forEach(async (guild) => {
+        const guildFilePath = path.join(__dirname, `./guilds-data/${guild.id}.json`);
+        if (fs.existsSync(guildFilePath)) {
+            const guildData = JSON.parse(fs.readFileSync(guildFilePath, 'utf8'));
+            if (guildData.logs_server_channel) {
+                const logChannel = guild.channels.cache.get(guildData.logs_server_channel);
+                if (logChannel) {
+                    const embed = new EmbedBuilder()
+                        .setColor(guildData.botColor || '#f40076')
+                        .setTitle('Redémarrage du bot... ⚠️')
+                        .setDescription('### **Le bot a été redémarré et est prêt à l\'emploi.** 🚀\n### Status: \n\`\`\`Erreur 418: Je suis une théière\`\`\`')
+                        .setTimestamp();
+                    try {
+                        await logChannel.send({ embeds: [embed] });
+                    } catch (err) {
+                        console.log(`Impossible d'envoyer un message dans le salon de logs pour la guilde ${guild.id}: ${err.message}`);
+                    }
+                }
+            }else{
+                console.log('nop')
+            }
+        }
+    });
+    try {
+        await setupAPIs();
+        console.log('Bot prêt à lire de la musique!');
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation des APIs:', error);
+        process.exit(1);
+    }
 });
 roleReactionHandler(client);
 // Client on Interaction Create

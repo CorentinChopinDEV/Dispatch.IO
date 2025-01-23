@@ -47,13 +47,7 @@
                             ephemeral: true,
                         });
                     }
-                } else {
-                    return interaction.reply({
-                        content: '**Rôle administrateur non configuré ->** `/config-general`',
-                        ephemeral: true,
-                    });
                 }
-                
 
                 let configData = {};
                 if (fs.existsSync(filePath)) {

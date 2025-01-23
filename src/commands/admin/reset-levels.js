@@ -33,11 +33,11 @@ module.exports = {
         if (guildData.admin_role && guildData.ownerId) {
             const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
             const isOwner = guildData.ownerId === interaction.user.id;
-            if (!isOwner) {
-                return interaction.editReply({ content: 'Vous n\'avez pas la permission de consulter ceci.', ephemeral: true });
+            if (!isOwner && !isAdmin) {
+                return interaction.reply({ content: 'Vous n\'avez pas la permission de consulter ceci.', ephemeral: true });
             }
         } else {
-            return interaction.editReply({ content: '**Rôle administrateur non configuré ->** `/config-general`', ephemeral: true });
+            return interaction.reply({ content: '**Rôle administrateur non configuré ->** `/config-general`', ephemeral: true });
         }
         const client = this.client;
         const levelSystem = new LevelingSystem(client);

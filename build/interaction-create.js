@@ -62,7 +62,10 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('leaderboard') &&
                 !interaction.commandName.includes('reset-levels') &&
                 !interaction.commandName.includes('remove-xp') &&
-                !interaction.commandName.includes('rank')
+                !interaction.commandName.includes('rank') &&
+                !interaction.commandName.includes('noname') &&
+                !interaction.commandName.includes('role-all') &&
+                !interaction.commandName.includes('play')
             );
               
               if (isValidCommand) {
@@ -549,6 +552,44 @@ async function interactionCREATE(interaction, client){
     } else if (interaction.customId === 'editEmbed' || interaction.customId === 'sendEmbed') {
         if(!interaction.isButton()) return;
         await handleButtonInteraction(interaction);
+    } else if (interaction.customId === 'music_pause' || 
+        interaction.customId === 'music_resume' || 
+        interaction.customId === 'music_stop' || 
+        interaction.customId === 'music_mute') {
+        
+        const musicData = interaction.client.musicData.get(interaction.guild.id);
+        if (!musicData) {
+            return interaction.reply({ content: 'Aucune musique en cours de lecture.', ephemeral: true });
+        }
+    
+        switch (interaction.customId) {
+            case 'music_pause':
+                musicData.player.pause();
+                await interaction.reply({ content: '⏸️ Musique en pause', ephemeral: true });
+                break;
+            case 'music_resume':
+                musicData.player.unpause();
+                await interaction.reply({ content: '▶️ Lecture reprise', ephemeral: true });
+                break;
+            case 'music_stop':
+                musicData.player.stop();
+                musicData.connection.destroy();
+                interaction.client.musicData.delete(interaction.guild.id);
+                await interaction.reply({ content: '⏹️ Lecture arrêtée', ephemeral: true });
+                break;
+            case 'music_mute':
+                if (musicData.isMuted) {
+                    musicData.player.state.resource.volume.setVolume(musicData.currentVolume);
+                    musicData.isMuted = false;
+                    await interaction.reply({ content: '🔊 Son réactivé', ephemeral: true });
+                } else {
+                    musicData.currentVolume = musicData.player.state.resource.volume.volume;
+                    musicData.player.state.resource.volume.setVolume(0);
+                    musicData.isMuted = true;
+                    await interaction.reply({ content: '🔇 Son coupé', ephemeral: true });
+                }
+                break;
+        }
     }
 } 
 

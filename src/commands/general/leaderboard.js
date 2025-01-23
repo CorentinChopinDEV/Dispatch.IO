@@ -29,6 +29,6 @@ module.exports = {
         const guildData = loadGuildData(filePath);
         const client = this.client;
         const levelSystem = new LevelingSystem(client);
-        await levelSystem.getLeaderboard(interaction);
+        await levelSystem.getLeaderboard(interaction, guildData);
     }
 };

@@ -642,12 +642,12 @@ class LogSystem {
         return [
             ...addedPermissionNames.map(permission => ({
                 name: `🔒 ${permission} (${roleOrUser})`,
-                value: `❌ → ✅`,
+                value: `✅ → ❌`,
                 inline: false
             })),
             ...removedPermissionNames.map(permission => ({
                 name: `🔒 ${permission} (${roleOrUser})`,
-                value: `✅ → ❌`,
+                value: `❌ → ✅`,
                 inline: false
             }))
         ];

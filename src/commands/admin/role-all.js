@@ -24,31 +24,43 @@ module.exports = {
         options: [
             {
                 name: 'role',
-                type: 8, // Type 8 correspond à ROLE dans Discord.js
+                type: 8,
                 description: 'Le rôle que vous souhaitez attribuer à tous les membres.',
                 required: true,
             },
         ],
     },
     async execute(interaction) {
+        // Defer la réponse immédiatement
+        await interaction.deferReply({ ephemeral: true });
+
         const guildId = interaction.guild.id;
         const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
+        
         if (guildData.admin_role && guildData.ownerId) {
             const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
             const isOwner = guildData.ownerId === interaction.user.id;
             if (!isAdmin && !isOwner) {
-                return interaction.editReply({ content: 'Vous n\'avez pas la permission de consulter ceci.', ephemeral: true });
+                return interaction.editReply({ content: 'Vous n\'avez pas la permission de consulter ceci.' });
             }
         } else {
-            return interaction.editReply({ content: '**Rôle administrateur non configurée ->** ``/config-general``', ephemeral: true });
+            return interaction.editReply({ content: '**Rôle administrateur non configuré ->** ``/config-general``' });
         }
-        const roleToAssign = interaction.options.getRole('role'); // Récupère le rôle mentionné dans la commande
+
+        const roleToAssign = interaction.options.getRole('role');
         if (!roleToAssign) {
-            return interaction.editReply({
-                content: 'Veuillez spécifier un rôle valide.',
-                ephemeral: true,
-            });
+            return interaction.editReply({ content: 'Veuillez spécifier un rôle valide.' });
+        }
+
+        // Vérifier si le bot a la permission de gérer les rôles
+        if (!interaction.guild.members.me.permissions.has('ManageRoles')) {
+            return interaction.editReply({ content: 'Je n\'ai pas la permission de gérer les rôles sur ce serveur.' });
+        }
+
+        // Vérifier si le rôle du bot est plus bas que le rôle à attribuer
+        if (roleToAssign.position >= interaction.guild.members.me.roles.highest.position) {
+            return interaction.editReply({ content: 'Je ne peux pas attribuer ce rôle car il est plus haut que mon rôle le plus élevé.' });
         }
 
         const memberCount = interaction.guild.memberCount;
@@ -57,7 +69,7 @@ module.exports = {
             .setColor(guildData.botColor || '#f40076')
             .setAuthor({
                 name: 'Attribution en masse de rôle',
-                iconURL: interaction.guild.iconURL({ dynamic: true }), // Icone de la guilde
+                iconURL: interaction.guild.iconURL({ dynamic: true }),
             })
             .setDescription(
                 `⚠️ Vous vous apprêtez à donner le rôle **<@&${roleToAssign.id}>** aux **${memberCount.toLocaleString('fr-FR')}** membres du serveur.\n\n**Que souhaitez-vous faire ?**\n` +
@@ -66,23 +78,26 @@ module.exports = {
                 `♾️・Attribuer le rôle à **tous les membres.**`
             )
             .setFooter({
-                text: `Demandé par @${interaction.user.tag}`,
-                iconURL: interaction.user.displayAvatarURL({ dynamic: true }), // Avatar de l'utilisateur
+                text: `Demandé par ${interaction.user.tag}`,
+                iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
             })
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('assign_humans')
-                .setLabel('👥')
+                .setLabel('Humains')
+                .setEmoji('👥')
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
                 .setCustomId('assign_bots')
-                .setLabel('🤖')
+                .setLabel('Robots')
+                .setEmoji('🤖')
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('assign_all')
-                .setLabel('♾️')
+                .setLabel('Tous')
+                .setEmoji('♾️')
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('cancel')
@@ -90,23 +105,18 @@ module.exports = {
                 .setStyle(ButtonStyle.Danger)
         );
 
-        await interaction.editReply({ embeds: [embed], components: [row], ephemeral: true });
+        const message = await interaction.editReply({ embeds: [embed], components: [row] });
 
-        const filter = (i) => i.user.id === interaction.user.id;
-        const collector = interaction.channel.createMessageComponentCollector({
-            filter,
-            time: 60000, // Durée de 60 secondes pour interagir
-        });
+        try {
+            const filter = i => i.user.id === interaction.user.id;
+            const buttonResponse = await message.awaitMessageComponent({ filter, time: 60000 });
 
-        collector.on('collect', async (buttonInteraction) => {
-            await buttonInteraction.deferUpdate();
-
-            if (buttonInteraction.customId === 'cancel') {
-                await interaction.editReply({
-                    content: 'L’attribution en masse de rôle a été annulée.',
-                    components: [],
+            if (buttonResponse.customId === 'cancel') {
+                return buttonResponse.update({
+                    content: 'L\'attribution en masse de rôle a été annulée.',
+                    embeds: [],
+                    components: []
                 });
-                return collector.stop();
             }
 
             // Confirmation supplémentaire
@@ -118,7 +128,7 @@ module.exports = {
                     `Appuyez sur **Valider** pour confirmer ou **Refuser** pour annuler.`
                 )
                 .setFooter({
-                    text: `Demandé par @${interaction.user.tag}`,
+                    text: `Demandé par ${interaction.user.tag}`,
                     iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
                 })
                 .setTimestamp();
@@ -134,162 +144,81 @@ module.exports = {
                     .setStyle(ButtonStyle.Danger)
             );
 
-            await interaction.editReply({ embeds: [confirmationEmbed], components: [confirmationRow] });
+            await buttonResponse.update({ embeds: [confirmationEmbed], components: [confirmationRow] });
 
-            const confirmationCollector = interaction.channel.createMessageComponentCollector({
-                filter,
-                time: 30000, // 30 secondes pour la confirmation
-            });
+            const confirmResponse = await message.awaitMessageComponent({ filter, time: 30000 });
 
-            confirmationCollector.on('collect', async (confirmationInteraction) => {
-                await confirmationInteraction.deferUpdate();
-
-                if (confirmationInteraction.customId === 'reject') {
-                    await interaction.editReply({
-                        content: 'L’attribution en masse de rôle a été annulée.',
-                        components: [],
-                    });
-                    return confirmationCollector.stop();
-                }
-
-                if (confirmationInteraction.customId === 'confirm') {
-                    const guildMembers = await interaction.guild.members.fetch();
-                    const humans = guildMembers.filter((member) => !member.user.bot);
-                    const bots = guildMembers.filter((member) => member.user.bot);
-
-                    switch (buttonInteraction.customId) {
-                        case 'assign_humans': {
-                            const totalHumans = humans.size;
-                            let completed = 0;
-                            const startTime = Date.now();
-                        
-                            for (const member of humans.values()) {
-                                await member.roles.add(roleToAssign).catch(console.error);
-                                completed++;
-                        
-                                // Calcul du pourcentage et du temps restant
-                                const progress = Math.round((completed / totalHumans) * 100);
-                                const elapsed = (Date.now() - startTime) / 1000; // Temps écoulé en secondes
-                                const remaining = ((elapsed / completed) * (totalHumans - completed)).toFixed(2); // Temps restant estimé
-                        
-                                // Mise à jour de l'embed pour afficher la progression
-                                const progressEmbed = new EmbedBuilder()
-                                    .setColor('#00FF00')
-                                    .setTitle('Attribution des rôles en cours...')
-                                    .setDescription(
-                                        `👥 Rôle **<@&${roleToAssign.id}>** en cours d'attribution aux membres humains.\n\n` +
-                                        `**Progression** : ${progress}%\n` +
-                                        `**Membres traités** : ${completed}/${totalHumans}\n` +
-                                        `⏳ Temps estimé restant : ${remaining} secondes`
-                                    )
-                                    .setFooter({ text: `Demandé par @${interaction.user.tag}` })
-                                    .setTimestamp();
-                        
-                                await interaction.editReply({ embeds: [progressEmbed], components: [] });
-                            }
-                        
-                            await interaction.editReply({
-                                content: `✅ Le rôle **<@&${roleToAssign.id}>** a été attribué à tous les membres humains.`,
-                                embeds: [],
-                                components: [],
-                            });
-                            break;
-                        }
-                        
-                        case 'assign_bots': {
-                            const totalBots = bots.size;
-                            let completed = 0;
-                            const startTime = Date.now();
-                        
-                            for (const member of bots.values()) {
-                                await member.roles.add(roleToAssign).catch(console.error);
-                                completed++;
-                        
-                                const progress = Math.round((completed / totalBots) * 100);
-                                const elapsed = (Date.now() - startTime) / 1000;
-                                const remaining = ((elapsed / completed) * (totalBots - completed)).toFixed(2);
-                        
-                                const progressEmbed = new EmbedBuilder()
-                                    .setColor('#00FF00')
-                                    .setTitle('Attribution des rôles en cours...')
-                                    .setDescription(
-                                        `🤖 Rôle **<@&${roleToAssign.id}>** en cours d'attribution aux robots.\n\n` +
-                                        `**Progression** : ${progress}%\n` +
-                                        `**Membres traités** : ${completed}/${totalBots}\n` +
-                                        `⏳ Temps estimé restant : ${remaining} secondes`
-                                    )
-                                    .setFooter({ text: `Demandé par @${interaction.user.tag}` })
-                                    .setTimestamp();
-                        
-                                await interaction.editReply({ embeds: [progressEmbed], components: [] });
-                            }
-                        
-                            await interaction.editReply({
-                                content: `✅ Le rôle **<@&${roleToAssign.id}>** a été attribué à tous les robots.`,
-                                embeds: [],
-                                components: [],
-                            });
-                            break;
-                        }
-                        
-                        case 'assign_all': {
-                            const totalMembers = guildMembers.size;
-                            let completed = 0;
-                            const startTime = Date.now();
-                        
-                            for (const member of guildMembers.values()) {
-                                await member.roles.add(roleToAssign).catch(console.error);
-                                completed++;
-                        
-                                const progress = Math.round((completed / totalMembers) * 100);
-                                const elapsed = (Date.now() - startTime) / 1000;
-                                const remaining = ((elapsed / completed) * (totalMembers - completed)).toFixed(2);
-                        
-                                const progressEmbed = new EmbedBuilder()
-                                    .setColor('#00FF00')
-                                    .setTitle('Attribution des rôles en cours...')
-                                    .setDescription(
-                                        `♾️ Rôle **<@&${roleToAssign.id}>** en cours d'attribution à tous les membres.\n\n` +
-                                        `**Progression** : ${progress}%\n` +
-                                        `**Membres traités** : ${completed}/${totalMembers}\n` +
-                                        `⏳ Temps estimé restant : ${remaining} secondes`
-                                    )
-                                    .setFooter({ text: `Demandé par @${interaction.user.tag}` })
-                                    .setTimestamp();
-                        
-                                await interaction.editReply({ embeds: [progressEmbed], components: [] });
-                            }
-                        
-                            await interaction.editReply({
-                                content: `✅ Le rôle **<@&${roleToAssign.id}>** a été attribué à tous les membres.`,
-                                embeds: [],
-                                components: [],
-                            });
-                            break;
-                        }                        
-                    }
-
-                    confirmationCollector.stop();
-                }
-            });
-
-            confirmationCollector.on('end', (_, reason) => {
-                if (reason === 'time') {
-                    interaction.editReply({
-                        content: 'Temps écoulé. L’opération a été annulée.',
-                        components: [],
-                    });
-                }
-            });
-        });
-
-        collector.on('end', (_, reason) => {
-            if (reason === 'time') {
-                interaction.editReply({
-                    content: 'Temps écoulé. L’attribution en masse de rôle a été annulée.',
-                    components: [],
+            if (confirmResponse.customId === 'reject') {
+                return confirmResponse.update({
+                    content: 'L\'attribution en masse de rôle a été annulée.',
+                    embeds: [],
+                    components: []
                 });
             }
-        });
+
+            if (confirmResponse.customId === 'confirm') {
+                await confirmResponse.update({
+                    content: 'Attribution des rôles en cours...',
+                    embeds: [],
+                    components: []
+                });
+
+                const guildMembers = await interaction.guild.members.fetch();
+                let targetMembers;
+
+                switch (buttonResponse.customId) {
+                    case 'assign_humans':
+                        targetMembers = guildMembers.filter(member => !member.user.bot);
+                        break;
+                    case 'assign_bots':
+                        targetMembers = guildMembers.filter(member => member.user.bot);
+                        break;
+                    case 'assign_all':
+                        targetMembers = guildMembers;
+                        break;
+                }
+
+                let success = 0;
+                let failed = 0;
+                const totalMembers = targetMembers.size;
+
+                for (const [, member] of targetMembers) {
+                    try {
+                        await member.roles.add(roleToAssign);
+                        success++;
+
+                        if (success % 10 === 0 || success + failed === totalMembers) {
+                            const progress = Math.round(((success + failed) / totalMembers) * 100);
+                            await interaction.editReply({
+                                content: `Attribution en cours... ${progress}% (${success + failed}/${totalMembers})\nRéussis: ${success}\nÉchecs: ${failed}`
+                            });
+                        }
+                    } catch (error) {
+                        failed++;
+                        console.error(`Erreur lors de l'attribution du rôle à ${member.user.tag}:`, error);
+                    }
+                }
+
+                return interaction.editReply({
+                    content: `✅ Attribution terminée!\nRôle attribué avec succès à ${success} membres.\nÉchecs: ${failed}`,
+                    embeds: [],
+                    components: []
+                });
+            }
+        } catch (error) {
+            if (error.code === 'InteractionCollectorError') {
+                return interaction.editReply({
+                    content: 'Temps écoulé. L\'attribution en masse de rôle a été annulée.',
+                    embeds: [],
+                    components: []
+                });
+            }
+            console.error('Erreur lors de l\'attribution des rôles:', error);
+            return interaction.editReply({
+                content: 'Une erreur est survenue lors de l\'attribution des rôles.',
+                embeds: [],
+                components: []
+            });
+        }
     },
 };
