@@ -24,7 +24,6 @@ function loadGuildData(guildPath) {
     }
 }
 
-
 module.exports = {
     data: {
         name: 'play',
@@ -59,6 +58,7 @@ module.exports = {
             const existingConnection = getVoiceConnection(interaction.guild.id);
             const queue = client.player.nodes.get(interaction.guildId);
 
+            // Si une musique est déjà en cours de lecture
             if (queue && queue.isPlaying()) {
                 const result = await client.player.search(query, {
                     requestedBy: interaction.user
@@ -73,7 +73,7 @@ module.exports = {
                 const embed = new EmbedBuilder()
                     .setColor(guildData.botColor || '#f40076')
                     .setTitle('🎵 Ajouté à la playlist')
-                    .setDescription(`${result.tracks.length > 1 
+                    .setDescription(`${result.tracks.length > 1
                         ? `**${result.tracks.length} pistes** ajoutées à la playlist`
                         : `**[${result.tracks[0].title}](${result.tracks[0].url})**`}`)
                     .setTimestamp();
@@ -94,6 +94,7 @@ module.exports = {
                 }
             });
 
+            // Construct action row with buttons
             const row = new ActionRowBuilder()
                 .addComponents(
                     new ButtonBuilder()
@@ -118,13 +119,10 @@ module.exports = {
                         .setStyle(ButtonStyle.Danger)
                 );
 
+            // Function to create embed for the current track
             const createEmbed = (track, isPaused = false, isLooping = false) => {
                 if (!track) {
-                    return new EmbedBuilder()
-                        .setColor('#0099ff')
-                        .setTitle('🎵 Aucune musique en cours')
-                        .setDescription('La playlist est vide')
-                        .setTimestamp();
+                    return interaction.deleteReply();
                 }
 
                 return new EmbedBuilder()
@@ -143,15 +141,16 @@ module.exports = {
                     .setTimestamp();
             };
 
-            const message = await interaction.editReply({
+            // Initial message with embed and buttons
+            let currentMessage = await interaction.editReply({
                 embeds: [createEmbed(track)],
                 components: [row]
             });
 
-            // Gestionnaire d'événements du player
+            // Event handler for player
             client.player.events.on('playerStart', (queue, track) => {
                 if (queue.metadata.channelId === interaction.channelId) {
-                    message.edit({
+                    currentMessage.edit({
                         embeds: [createEmbed(track, queue.node.isPaused(), queue.repeatMode === 1)],
                         components: [row]
                     }).catch(console.error);
@@ -160,11 +159,11 @@ module.exports = {
 
             client.player.events.on('emptyQueue', (queue) => {
                 if (queue.metadata.channelId === interaction.channelId) {
-                    message.edit({
+                    currentMessage.edit({
                         embeds: [createEmbed(null)],
                         components: [row]
                     }).catch(console.error);
-                    
+
                     const connection = getVoiceConnection(interaction.guild.id);
                     if (connection) {
                         setTimeout(() => connection.destroy(), 1000);
@@ -172,7 +171,8 @@ module.exports = {
                 }
             });
 
-            const collector = message.createMessageComponentCollector({
+            // Collector for button interactions
+            const collector = currentMessage.createMessageComponentCollector({
                 componentType: ComponentType.Button,
                 time: 3600000
             });
@@ -186,6 +186,7 @@ module.exports = {
                 }
 
                 const queue = client.player.nodes.get(interaction.guildId);
+                let updatedEmbed;
 
                 switch (i.customId) {
                     case 'pause':
@@ -196,10 +197,7 @@ module.exports = {
                             });
                         }
                         queue.node.setPaused(!queue.node.isPaused());
-                        await message.edit({
-                            embeds: [createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1)],
-                            components: [row]
-                        });
+                        updatedEmbed = createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1);
                         await i.reply({
                             content: queue.node.isPaused() ? '⏸️ Pause' : '▶️ Lecture',
                             ephemeral: true
@@ -214,10 +212,7 @@ module.exports = {
                             });
                         }
                         queue.setRepeatMode(queue.repeatMode === 0 ? 1 : 0);
-                        await message.edit({
-                            embeds: [createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1)],
-                            components: [row]
-                        });
+                        updatedEmbed = createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1);
                         await i.reply({
                             content: `🔁 Boucle ${queue.repeatMode === 0 ? 'désactivée' : 'activée'}`,
                             ephemeral: true
@@ -246,10 +241,7 @@ module.exports = {
                         if (connection) {
                             connection.destroy();
                         }
-                        await message.edit({
-                            embeds: [createEmbed(null)],
-                            components: [row]
-                        });
+                        updatedEmbed = createEmbed(null);
                         await i.reply({
                             content: '🗑️ Playlist vidée et bot déconnecté',
                             ephemeral: true
@@ -277,13 +269,11 @@ module.exports = {
                         let currentPage = 0;
 
                         const updatePlaylistEmbed = () => {
-                            const playlistEmbed = new EmbedBuilder()
+                            return new EmbedBuilder()
                                 .setColor(guildData.botColor || '#f40076')
                                 .setTitle('📑 Playlist')
                                 .setDescription(pages.length > 0 ? pages[currentPage] : 'Aucune piste dans la playlist.')
                                 .setFooter({ text: `Page ${currentPage + 1} sur ${pages.length || 1}` });
-
-                            return playlistEmbed;
                         };
 
                         const playlistRow = new ActionRowBuilder()
@@ -349,6 +339,12 @@ module.exports = {
                         });
                         break;
                 }
+
+                // Update the message with the new embed after the action
+                await currentMessage.edit({
+                    embeds: [updatedEmbed],
+                    components: [row]
+                });
             });
         } catch (error) {
             console.error(error);
