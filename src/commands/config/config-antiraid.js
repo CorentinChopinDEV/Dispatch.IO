@@ -31,20 +31,18 @@ module.exports = {
         description: 'Configurer le système Anti-Raid.',
     },
     async execute(interaction) {
-        const client = interaction.client; // Assurez-vous que le client est accessible à partir de l'interaction
+        const client = interaction.client;
         const guildId = interaction.guild.id;
         const guildPath = path.join(__dirname, `../../../guilds-data/${guildId}.json`);
 
-        
         // Charger les données de la guilde
         const guildData = loadGuildData(guildPath);
         if (guildData.ownerId) {
             const isOwner = guildData.ownerId === interaction.user.id;
             const isAdmin = interaction.member.roles.cache.has(guildData.admin_role);
             const devRoleId = guildData.dev_role;
-            const hasDevRole = devRoleId && interaction.member.roles.cache.has(devRoleId); // Vérifie si l'utilisateur possède le rôle Dev
+            const hasDevRole = devRoleId && interaction.member.roles.cache.has(devRoleId);
 
-            // Autoriser seulement si l'utilisateur est soit ownerId, soit possède le rôle Dev
             if (!isOwner && !hasDevRole && !isAdmin) {
                 return interaction.reply({
                     content: 'Vous n\'avez pas la permission de consulter ceci. 🔴',
@@ -58,7 +56,6 @@ module.exports = {
             });
         }
 
-        // Créer l'embed de configuration
         const embed = new EmbedBuilder()
             .setTitle('Configuration Anti-Raid')
             .setDescription(`L\'Anti-Raid protège votre serveur contre les attaques de bots et d\'intrusions massives. Vous pouvez activer ou désactiver cette fonctionnalité.\n\n**Anti-Raid est actuellement:**\n **${guildData.antiRaid || 'Inactif'}**`)
@@ -66,7 +63,6 @@ module.exports = {
             .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNW9rZ3ljdGNnMzdkMHVzOWUzdWw4ZGJyMzA2cXA1MW11ZXgwOWxydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0Iyj0xKaPQ9BmKSQ/giphy.gif')
             .setFooter({ text: 'Cliquez sur le bouton pour activer ou désactiver l\'Anti-Raid.' });
 
-        // Créer le bouton pour activer/désactiver l'Anti-Raid
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('toggleAntiRaid')
@@ -74,21 +70,37 @@ module.exports = {
                 .setStyle(guildData.antiRaid === 'Actif' ? ButtonStyle.Danger : ButtonStyle.Success)
         );
 
-        // Envoyer l'embed avec le bouton
         await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
 
-        // Gérer les interactions avec les boutons
         const filter = (btnInteraction) => btnInteraction.user.id === interaction.user.id;
         const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
 
         collector.on('collect', async (btnInteraction) => {
             if (btnInteraction.customId === 'toggleAntiRaid') {
-                // Changer le statut de l'Anti-Raid
                 const newStatus = guildData.antiRaid === 'Actif' ? 'Inactif' : 'Actif';
                 guildData.antiRaid = newStatus;
                 saveGuildData(guildPath, guildData);
 
-                // Mise à jour de l'embed
+                let statusEdit = "";
+                if(newStatus === 'Actif'){
+                    statusEdit = "Activer";
+                }else if(newStatus === 'Inactif'){
+                    statusEdit = "Désactiver";
+                }
+                // Créer et envoyer l'embed de logs
+                if (guildData.logs_raid_channel) {
+                    const logsChannel = interaction.guild.channels.cache.get(guildData.logs_raid_channel);
+                    if (logsChannel) {
+                        const logsEmbed = new EmbedBuilder()
+                            .setTitle('Modification Anti-Raid ⚠️')
+                            .setDescription(`L'Anti-Raid a été **${statusEdit}** par ${interaction.user.tag}`)
+                            .setColor(newStatus === 'Actif' ? '#00ff00' : '#ff0000')
+                            .setTimestamp();
+                        
+                        await logsChannel.send({ embeds: [logsEmbed] });
+                    }
+                }
+
                 const updatedEmbed = new EmbedBuilder()
                     .setTitle('Configuration Anti-Raid')
                     .setDescription(`L\'Anti-Raid protège votre serveur contre les attaques de bots et d\'intrusions massives. Vous pouvez activer ou désactiver cette fonctionnalité.\n\n**Anti-Raid est actuellement:**\n **${guildData.antiRaid || 'Inactif'}**`)
@@ -96,7 +108,6 @@ module.exports = {
                     .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNW9rZ3ljdGNnMzdkMHVzOWUzdWw4ZGJyMzA2cXA1MW11ZXgwOWxydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0Iyj0xKaPQ9BmKSQ/giphy.gif')
                     .setFooter({ text: 'Cliquez sur le bouton pour activer ou désactiver l\'Anti-Raid.' });
 
-                // Mettre à jour l'embed avec le nouveau statut et le bouton approprié
                 await btnInteraction.update({
                     embeds: [updatedEmbed],
                     components: [

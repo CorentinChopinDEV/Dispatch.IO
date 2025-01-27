@@ -49,7 +49,7 @@ module.exports = {
 
 # :gear: Bot Status
 * ${emojis.status.functional} **Statut :** Fonctionnel.
-* :white_check_mark: **Description :** Toutes les commandes disponnible fonctionnent parfaitement.
+* :white_check_mark: **Description :** Toutes les commandes sont fonctionnelle.
 
 # :globe_with_meridians: Website Status
 * ${emojis.status.functional} **Statut :** Fonctionnel

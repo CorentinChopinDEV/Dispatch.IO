@@ -37,16 +37,15 @@ module.exports = {
 
         // Embed pour le statut des services
         const embed = new EmbedBuilder()
-            .setColor(guildData.botColor || '#f40076') // Utilisation de la couleur définie dans les données de guilde ou une couleur par défaut
+            .setColor(guildData.botColor || '#f40076')
             .setDescription(
                 `# ${emojis.status.functional} | ETA:
-\`\`Dispatch.IO n'est pas en maintenance.\`\`
-\`\`ETA: Fonctionnelle\`\`
+\`\`Dispatch.IO n'est pas en maintenance !\`\`
                 `
             );
 
         await interaction.editReply({ content: '', embeds: [embed], ephemeral: true });
         const fetchedMessage = await interaction.fetchReply();
-        await fetchedMessage.react(`${emojis.status.functional}`); // Réaction d'engrenage
+        // await fetchedMessage.react(`${emojis.status.functional}`); // Réaction d'engrenage
     },
 };

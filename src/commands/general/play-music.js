@@ -6,42 +6,114 @@ const {
     ComponentType
 } = require('discord.js');
 const { getVoiceConnection } = require('@discordjs/voice');
+const { SpotifyExtractor } = require('@discord-player/extractor');
+const { QueryType } = require('discord-player');
 const path = require('path');
 const fs = require('fs');
 
+// Fonction pour charger les données de la guilde
 function loadGuildData(guildPath) {
     try {
         if (fs.existsSync(guildPath)) {
             const data = fs.readFileSync(guildPath, 'utf-8');
             return JSON.parse(data);
-        } else {
-            console.log(`Le fichier pour la guilde ${guildPath} n'existe pas.`);
-            return {};
         }
+        console.log(`Le fichier pour la guilde ${guildPath} n'existe pas.`);
+        return {};
     } catch (err) {
         console.error('Erreur lors du chargement des données de la guilde:', err);
         return {};
     }
 }
 
+// Fonction pour créer l'embed de la musique en cours
+function createMusicEmbed(track, guildData, interaction, isPaused = false, isLooping = false) {
+    if (!track) return null;
+
+    return new EmbedBuilder()
+        .setColor(guildData.botColor || '#f40076')
+        .setTitle('🎵 Musique en cours')
+        .setDescription(`**[${track.title}](${track.url})**`)
+        .addFields(
+            { name: '⏱️ Durée', value: track.duration || '?', inline: true },
+            { name: '👤 Demandé par', value: `<@${interaction.user.id}>`, inline: true },
+            { name: '🔁 Boucle', value: isLooping ? 'Activée' : 'Désactivée', inline: false },
+            { name: '⏯️ État', value: isPaused ? 'En pause' : 'En lecture', inline: false },
+            { name: '🙂‍↕️ Contributeur', value: '**Merci à** [MRezor](https://discord.gg/eBTmECdBFH) **pour son aide !**', inline: false },
+            { name: '🎚️ Crédit', value: '**Dispatch.IO | 2025**', inline: false }
+        )
+        .setThumbnail(track.thumbnail)
+        .setTimestamp();
+}
+
+// Fonction pour créer les boutons de contrôle
+function createControlButtons() {
+    return new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('pause')
+                .setLabel('⏯️')
+                .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+                .setCustomId('loop')
+                .setLabel('🔁')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('skip')
+                .setLabel('⏭️')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('playlist')
+                .setLabel('📑')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('clear')
+                .setLabel('⏹️')
+                .setStyle(ButtonStyle.Danger)
+        );
+}
+
+// Fonction pour créer l'embed de la playlist
+function createPlaylistEmbed(tracks, currentPage, totalPages, guildData) {
+    const tracksOnPage = tracks.slice(currentPage * 10, (currentPage + 1) * 10)
+        .map((track, index) => `${currentPage * 10 + index + 1}. [${track.title}](${track.url})`);
+
+    return new EmbedBuilder()
+        .setColor(guildData.botColor || '#f40076')
+        .setTitle('📑 Playlist')
+        .setDescription(tracksOnPage.join('\n'))
+        .setFooter({ text: `Page ${currentPage + 1} sur ${totalPages}` });
+}
+
+// Fonction pour déterminer le type de recherche
+function getSearchEngine(query) {
+    if (query.includes('spotify.com/track/')) return QueryType.SPOTIFY_TRACK;
+    if (query.includes('spotify.com/playlist/')) return QueryType.SPOTIFY_PLAYLIST;
+    if (query.includes('spotify.com/album/')) return QueryType.SPOTIFY_ALBUM;
+    return QueryType.AUTO;
+}
+
 module.exports = {
     data: {
         name: 'play',
         description: 'Joue une musique ou une playlist depuis YouTube, Spotify ou SoundCloud',
-        options: [
-            {
-                name: 'query',
-                type: 3,
-                description: 'Le titre, lien ou playlist à jouer',
-                required: true
-            }
-        ]
+        options: [{
+            name: 'query',
+            type: 3,
+            description: 'Le titre, lien ou playlist à jouer',
+            required: true
+        }]
     },
     async execute(interaction) {
+        // Initialisation
+        const client = this.client;
+        client.player.extractors.register(SpotifyExtractor);
+
         const guildId = interaction.guild.id;
         const filePath = path.join(__dirname, '../../../guilds-data', `${guildId}.json`);
         const guildData = loadGuildData(filePath);
 
+        // Vérification du salon vocal
         const voiceChannel = interaction.member.voice.channel;
         if (!voiceChannel) {
             return interaction.reply({
@@ -50,19 +122,20 @@ module.exports = {
             });
         }
 
-        const client = this.client;
         await interaction.deferReply();
         const query = interaction.options.getString('query');
 
         try {
-            const existingConnection = getVoiceConnection(interaction.guild.id);
             const queue = client.player.nodes.get(interaction.guildId);
+            const searchEngine = getSearchEngine(query);
+            const searchOptions = {
+                requestedBy: interaction.user,
+                searchEngine: searchEngine
+            };
 
-            // Si une musique est déjà en cours de lecture
-            if (queue && queue.isPlaying()) {
-                const result = await client.player.search(query, {
-                    requestedBy: interaction.user
-                });
+            // Gestion de l'ajout à la file d'attente
+            if (queue?.isPlaying()) {
+                const result = await client.player.search(query, searchOptions);
 
                 if (!result.tracks.length) {
                     return interaction.editReply('❌ Aucun résultat trouvé !');
@@ -73,131 +146,82 @@ module.exports = {
                 const embed = new EmbedBuilder()
                     .setColor(guildData.botColor || '#f40076')
                     .setTitle('🎵 Ajouté à la playlist')
-                    .setDescription(`${result.tracks.length > 1
+                    .setDescription(result.tracks.length > 1
                         ? `**${result.tracks.length} pistes** ajoutées à la playlist`
-                        : `**[${result.tracks[0].title}](${result.tracks[0].url})**`}`)
+                        : `**[${result.tracks[0].title}](${result.tracks[0].url})**`)
                     .setTimestamp();
 
                 return interaction.editReply({ embeds: [embed] });
             }
 
+            // Lecture de la première piste
             const { track } = await client.player.play(voiceChannel, query, {
                 nodeOptions: {
                     metadata: interaction,
-                    leaveOnEmpty: true,
+                    leaveOnEmpty: false,
                     leaveOnEnd: true,
                     leaveOnStop: true,
                     volume: 50,
-                    quality: "high",
                     bufferingTimeout: 15000,
                     smoothVolume: true
-                }
+                },
+                ...searchOptions
             });
 
-            // Construct action row with buttons
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('pause')
-                        .setLabel('⏯️')
-                        .setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder()
-                        .setCustomId('loop')
-                        .setLabel('🔁')
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId('skip')
-                        .setLabel('⏭️')
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId('playlist')
-                        .setLabel('📑')
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId('clear')
-                        .setLabel('⏹️')
-                        .setStyle(ButtonStyle.Danger)
-                );
-
-            // Function to create embed for the current track
-            const createEmbed = (track, isPaused = false, isLooping = false) => {
-                if (!track) {
-                    return interaction.deleteReply();
-                }
-
-                return new EmbedBuilder()
-                    .setColor(guildData.botColor || '#f40076')
-                    .setTitle('🎵 Musique en cours')
-                    .setDescription(`**[${track.title}](${track.url})**`)
-                    .addFields(
-                        { name: '⏱️ Durée', value: track.duration || '?', inline: true },
-                        { name: '👤 Demandé par', value: `<@${interaction.user.id}>`, inline: true },
-                        { name: '🔁 Boucle', value: isLooping ? 'Activée' : 'Désactivée', inline: false },
-                        { name: '⏯️ État', value: isPaused ? 'En pause' : 'En lecture', inline: false },
-                        { name: '🙂‍↕️ Contributeur', value: '**Merci à** [MRezor](https://discord.gg/eBTmECdBFH) **pour son aide !**', inline: false },
-                        { name: '🎚️ Crédit', value: '**Dispatch.IO | 2025**', inline: false },
-                    )
-                    .setThumbnail(track.thumbnail)
-                    .setTimestamp();
-            };
-
-            // Initial message with embed and buttons
+            const controlButtons = createControlButtons();
             let currentMessage = await interaction.editReply({
-                embeds: [createEmbed(track)],
-                components: [row]
+                embeds: [createMusicEmbed(track, guildData, interaction)],
+                components: [controlButtons]
             });
 
-            // Event handler for player
+            // Gestion des événements du lecteur
             client.player.events.on('playerStart', (queue, track) => {
                 if (queue.metadata.channelId === interaction.channelId) {
                     currentMessage.edit({
-                        embeds: [createEmbed(track, queue.node.isPaused(), queue.repeatMode === 1)],
-                        components: [row]
+                        embeds: [createMusicEmbed(track, guildData, interaction, queue.node.isPaused(), queue.repeatMode === 1)],
+                        components: [controlButtons]
                     }).catch(console.error);
                 }
             });
 
             client.player.events.on('emptyQueue', (queue) => {
                 if (queue.metadata.channelId === interaction.channelId) {
-                    currentMessage.edit({
-                        embeds: [createEmbed(null)],
-                        components: [row]
-                    }).catch(console.error);
-
                     const connection = getVoiceConnection(interaction.guild.id);
                     if (connection) {
                         setTimeout(() => connection.destroy(), 1000);
                     }
+                    currentMessage.edit({
+                        embeds: [createMusicEmbed(null, guildData, interaction)],
+                        components: []
+                    }).catch(console.error);
                 }
             });
 
-            // Collector for button interactions
+            // Collecteur pour les boutons
             const collector = currentMessage.createMessageComponentCollector({
                 componentType: ComponentType.Button,
                 time: 3600000
             });
 
-            collector.on('collect', async i => {
+            collector.on('collect', async (i) => {
                 if (i.user.id !== interaction.user.id) {
-                    return i.reply({ 
+                    return i.reply({
                         content: '❌ Seule la personne ayant lancé la musique peut utiliser ces boutons.',
-                        ephemeral: true 
+                        ephemeral: true
                     });
                 }
 
                 const queue = client.player.nodes.get(interaction.guildId);
-                let updatedEmbed;
+                if (!queue && i.customId !== 'clear') {
+                    return i.reply({
+                        content: '❌ Aucune musique en cours de lecture.',
+                        ephemeral: true
+                    });
+                }
 
                 switch (i.customId) {
                     case 'pause':
-                        if (!queue || !queue.currentTrack) {
-                            return i.reply({
-                                content: '❌ Aucune musique en cours de lecture.',
-                                ephemeral: true
-                            });
-                        }
                         queue.node.setPaused(!queue.node.isPaused());
-                        updatedEmbed = createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1);
                         await i.reply({
                             content: queue.node.isPaused() ? '⏸️ Pause' : '▶️ Lecture',
                             ephemeral: true
@@ -205,14 +229,7 @@ module.exports = {
                         break;
 
                     case 'loop':
-                        if (!queue || !queue.currentTrack) {
-                            return i.reply({
-                                content: '❌ Aucune musique en cours de lecture.',
-                                ephemeral: true
-                            });
-                        }
                         queue.setRepeatMode(queue.repeatMode === 0 ? 1 : 0);
-                        updatedEmbed = createEmbed(queue.currentTrack, queue.node.isPaused(), queue.repeatMode === 1);
                         await i.reply({
                             content: `🔁 Boucle ${queue.repeatMode === 0 ? 'désactivée' : 'activée'}`,
                             ephemeral: true
@@ -220,12 +237,6 @@ module.exports = {
                         break;
 
                     case 'skip':
-                        if (!queue || !queue.currentTrack) {
-                            return i.reply({
-                                content: '❌ Aucune musique en cours de lecture.',
-                                ephemeral: true
-                            });
-                        }
                         queue.node.skip();
                         await i.reply({
                             content: '⏭️ Musique suivante',
@@ -241,7 +252,6 @@ module.exports = {
                         if (connection) {
                             connection.destroy();
                         }
-                        updatedEmbed = createEmbed(null);
                         await i.reply({
                             content: '🗑️ Playlist vidée et bot déconnecté',
                             ephemeral: true
@@ -249,59 +259,43 @@ module.exports = {
                         break;
 
                     case 'playlist':
-                        if (!queue || !queue.tracks.size) {
+                        if (!queue?.tracks.size) {
                             return i.reply({
                                 content: '❌ La playlist est vide.',
                                 ephemeral: true
                             });
                         }
 
-                        const tracks = queue.tracks.map((track, index) =>
-                            `${index + 1}. [${track.title}](${track.url})`
-                        );
-
-                        const pages = [];
-                        const chunkSize = 10;
-                        for (let i = 0; i < tracks.length; i += chunkSize) {
-                            pages.push(tracks.slice(i, i + chunkSize).join('\n'));
-                        }
-
                         let currentPage = 0;
+                        const tracksArray = Array.from(queue.tracks);
+                        const totalPages = Math.ceil(tracksArray.length / 10);
 
-                        const updatePlaylistEmbed = () => {
-                            return new EmbedBuilder()
-                                .setColor(guildData.botColor || '#f40076')
-                                .setTitle('📑 Playlist')
-                                .setDescription(pages.length > 0 ? pages[currentPage] : 'Aucune piste dans la playlist.')
-                                .setFooter({ text: `Page ${currentPage + 1} sur ${pages.length || 1}` });
-                        };
-
-                        const playlistRow = new ActionRowBuilder()
+                        const playlistButtons = new ActionRowBuilder()
                             .addComponents(
                                 new ButtonBuilder()
                                     .setCustomId('prev_page')
                                     .setLabel('⬅️')
                                     .setStyle(ButtonStyle.Secondary)
-                                    .setDisabled(currentPage === 0),
+                                    .setDisabled(true),
                                 new ButtonBuilder()
                                     .setCustomId('next_page')
                                     .setLabel('➡️')
                                     .setStyle(ButtonStyle.Secondary)
-                                    .setDisabled(currentPage === pages.length - 1)
+                                    .setDisabled(totalPages <= 1)
                             );
 
-                        const reply = await i.reply({
-                            embeds: [updatePlaylistEmbed()],
-                            components: [playlistRow],
+                        const playlistMessage = await i.reply({
+                            embeds: [createPlaylistEmbed(tracksArray, currentPage, totalPages, guildData)],
+                            components: [playlistButtons],
                             ephemeral: true
                         });
 
-                        const playlistCollector = reply.createMessageComponentCollector({
+                        const playlistCollector = playlistMessage.createMessageComponentCollector({
                             componentType: ComponentType.Button,
                             time: 300000
                         });
 
-                        playlistCollector.on('collect', async buttonInteraction => {
+                        playlistCollector.on('collect', async (buttonInteraction) => {
                             if (buttonInteraction.user.id !== interaction.user.id) {
                                 return buttonInteraction.reply({
                                     content: '❌ Vous ne pouvez pas interagir avec cette commande.',
@@ -309,46 +303,45 @@ module.exports = {
                                 });
                             }
 
-                            switch (buttonInteraction.customId) {
-                                case 'prev_page':
-                                    currentPage = Math.max(currentPage - 1, 0);
-                                    break;
-                                case 'next_page':
-                                    currentPage = Math.min(currentPage + 1, pages.length - 1);
-                                    break;
+                            if (buttonInteraction.customId === 'prev_page') {
+                                currentPage = Math.max(0, currentPage - 1);
+                            } else if (buttonInteraction.customId === 'next_page') {
+                                currentPage = Math.min(totalPages - 1, currentPage + 1);
                             }
 
+                            const updatedButtons = new ActionRowBuilder()
+                                .addComponents(
+                                    new ButtonBuilder()
+                                        .setCustomId('prev_page')
+                                        .setLabel('⬅️')
+                                        .setStyle(ButtonStyle.Secondary)
+                                        .setDisabled(currentPage === 0),
+                                    new ButtonBuilder()
+                                        .setCustomId('next_page')
+                                        .setLabel('➡️')
+                                        .setStyle(ButtonStyle.Secondary)
+                                        .setDisabled(currentPage === totalPages - 1)
+                                );
+
                             await buttonInteraction.update({
-                                embeds: [updatePlaylistEmbed()],
-                                components: [
-                                    new ActionRowBuilder()
-                                        .addComponents(
-                                            new ButtonBuilder()
-                                                .setCustomId('prev_page')
-                                                .setLabel('⬅️')
-                                                .setStyle(ButtonStyle.Secondary)
-                                                .setDisabled(currentPage === 0),
-                                            new ButtonBuilder()
-                                                .setCustomId('next_page')
-                                                .setLabel('➡️')
-                                                .setStyle(ButtonStyle.Secondary)
-                                                .setDisabled(currentPage === pages.length - 1)
-                                        )
-                                ]
+                                embeds: [createPlaylistEmbed(tracksArray, currentPage, totalPages, guildData)],
+                                components: [updatedButtons]
                             });
                         });
                         break;
                 }
 
-                // Update the message with the new embed after the action
-                await currentMessage.edit({
-                    embeds: [updatedEmbed],
-                    components: [row]
-                });
+                if (queue?.currentTrack) {
+                    await currentMessage.edit({
+                        embeds: [createMusicEmbed(queue.currentTrack, guildData, interaction, queue.node.isPaused(), queue.repeatMode === 1)],
+                        components: [controlButtons]
+                    });
+                }
             });
+
         } catch (error) {
             console.error(error);
-            interaction.editReply({
+            return interaction.editReply({
                 content: '❌ Une erreur est survenue lors de la lecture de la musique.',
                 ephemeral: true
             });

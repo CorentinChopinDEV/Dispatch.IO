@@ -75,70 +75,75 @@ async function checkAndRemoveRoles() {
                 );
                 if (rolesToRemove.length > 0) {
                     await member.roles.remove(rolesToRemove);
-                    console.log(`Rôles retirés pour ${member.user.tag}: ${rolesToRemove.join(', ')}`);
+                    console.log(`\x1b[32mRôles retirés pour ${member.user.tag}: ${rolesToRemove.join(', ')}`);
                 }
             }
         });
     } catch (error) {
-        console.error('Une erreur s\'est produite lors de la gestion des rôles :', error);
+        console.error('\x1b[33mUne erreur s\'est produite lors de la gestion des rôles :', error);
     }
 }
 
 client.once('ready', async () => {
-    await antiRaid.initialize(client);
-    try{
+    console.log('\x1b[32m%s\x1b[0m', `${client.user.tag} est prêt à fonctionner 🚀`);
+
+    try {
+        // Initialisation des systèmes
+        await antiRaid.initialize(client);
         await logSystem.initialize(client);
-    }catch (err){
-        console.log('Log system error:' + err)
+        console.log('\x1b[32m%s\x1b[0m', 'Systèmes d\'anti-raid et de logs activés.');
+            const commands = [];
+            await loadCommands(commandsPath, client, commands);
+            await refreshCommands(client, commands);
+        
+        console.log('\x1b[32m%s\x1b[0m', 'Commandes (/) enregistrées avec succès.');
+
+        // Surveillance Anti-Raid
+        setInterval(() => protectionBOTCheck(client), 30000);
+
+        // Gestion des rôles
+        setInterval(checkAndRemoveRoles, 10000);
+
+        // // Mise à jour de la présence
+        const updatePresence = () => {
+            client.user.setPresence({
+                activities: [{
+                    name: `${client.guilds.cache.size} serveurs | 📂: ${client.commands.size}`,
+                    type: ActivityType.Streaming,
+                    url: 'https://www.twitch.tv/codanotw',
+                }],
+                status: 'online',
+            });
+        };
+        setInterval(updatePresence, 30000);
+        updatePresence();
+    } catch (err) {
+        console.error('\x1b[31mUne erreur est survenue lors de l\'initialisation :\x1b[0m', err);
     }
-    await client.application.commands.set([]);
-    const commands = [];
-    await loadCommands(commandsPath, client, commands);
-    await refreshCommands(client, commands);
-    console.log('Bot is ready and commands are available !');
-    const updatePresence = () => {
-        const commandCount = client.commands.size;
-        client.user.setPresence({         
-            activities: [{             
-                name: `${client.guilds.cache.size} serveurs | 📂: ${commandCount}`,             
-                type: ActivityType.Streaming,            
-                url: "https://www.twitch.tv/codanotw",
-            }],         
-            status: 'online'     
-        });
-        setTimeout(updatePresence, 30000);
-    };
-    setTimeout(updatePresence, 100);
-    setInterval(() => protectionBOTCheck(client), 30000);
-    console.log('Bot is ready and commands are available !');
-    console.log('Anti-Raid actif !')
-    setInterval(checkAndRemoveRoles, 10 * 1000);
-    const sondageCommand = client.commands.get('sondage');
-    await sondageCommand.restorePolls(client);
-    client.guilds.cache.forEach(async (guild) => {
-        const guildFilePath = path.join(__dirname, `./guilds-data/${guild.id}.json`);
-        if (fs.existsSync(guildFilePath)) {
-            const guildData = JSON.parse(fs.readFileSync(guildFilePath, 'utf8'));
+
+    // Notification de redémarrage
+    client.guilds.cache.forEach(async guild => {
+        const guildPath = path.resolve(`./guilds-data/${guild.id}.json`);
+        if (fs.existsSync(guildPath)) {
+            const guildData = JSON.parse(fs.readFileSync(guildPath, 'utf8'));
             if (guildData.logs_server_channel) {
                 const logChannel = guild.channels.cache.get(guildData.logs_server_channel);
                 if (logChannel) {
                     const embed = new EmbedBuilder()
                         .setColor(guildData.botColor || '#f40076')
-                        .setTitle('Redémarrage du bot... ⚠️')
-                        .setDescription('### **Le bot a été redémarré et est prêt à l\'emploi.** 🚀\n### Status: \n\`\`\`Erreur 418: Je suis une théière\`\`\`')
+                        .setDescription('## Le bot a été redémarré 🚀')
                         .setTimestamp();
                     try {
                         await logChannel.send({ embeds: [embed] });
                     } catch (err) {
-                        console.log(`Impossible d'envoyer un message dans le salon de logs pour la guilde ${guild.id}: ${err.message}`);
+                        console.error(`Impossible d'envoyer un message dans le salon ${logChannel.id}:`, err.message);
                     }
                 }
-            }else{
-                console.log('nop')
             }
         }
     });
 });
+
 roleReactionHandler(client);
 // Client on Interaction Create
 client.on('interactionCreate', async interaction => {
@@ -160,31 +165,27 @@ client.on('messageCreate', (message) => {
 });
 client.on('guildCreate', async (guild) => {
     handleBotJoin(guild);
-    await client.application.commands.set([]);
-    const commands = [];
-    await loadCommands(commandsPath, client, commands);
-    await refreshCommands(client, commands);
 });
 client.on('guildDelete', guild => {
     handleBotLeave(guild);
 });
 process.on('uncaughtException', (error) => {
-    console.error('Une erreur non interceptée a été détectée :', error);
+    console.error('\x1b[31mUne erreur non interceptée a été détectée :', error);
 });
 // Ceci à passer dans un autre fichier de gestion
 process.on('unhandledRejection', async (reason, promise) => {
-    console.error('Une promesse rejetée sans gestionnaire a été détectée :', reason);
+    console.error('\x1b[31mUne promesse rejetée sans gestionnaire a été détectée :', reason);
     if (reason?.code === 10062) {
-        console.warn('Erreur liée à une interaction inconnue détectée. Tentative de réexécution...');
+        console.warn('\x1b[33mErreur liée à une interaction inconnue détectée. Tentative de réexécution...');
         const interaction = reason?.interaction;
         if (interaction && interaction.commandName) {
             try {
                 const command = interaction.client.commands.get(interaction.commandName);
-                if (!command) throw new Error('Commande introuvable.');
+                if (!command) throw new Error('\x1b[35mCommande introuvable.');
                 await command.execute(interaction);
-                console.log(`Commande "${interaction.commandName}" réexécutée avec succès.`);
+                console.log(`\x1b[35mCommande "${interaction.commandName}" réexécutée avec succès.`);
             } catch (error) {
-                console.error('Erreur lors de la tentative de réexécution :', error);
+                console.error('\x1b[33mErreur lors de la tentative de réexécution :', error);
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({
                         content: '❌ Une erreur est survenue et la commande n\'a pas pu être exécutée.',
@@ -198,18 +199,18 @@ process.on('unhandledRejection', async (reason, promise) => {
                 }
             }
         } else {
-            console.warn('Impossible de réexécuter l\'interaction : données manquantes.');
+            console.warn('\x1b[31mImpossible de réexécuter l\'interaction : données manquantes.');
         }
     } else {
-        console.error('Erreur non liée à une interaction inconnue :', reason);
+        console.error('\x1b[31mErreur non liée à une interaction inconnue :', reason);
     }
 });
 
 client.on('error', (error) => {
-    console.error('Erreur de WebSocket détectée :', error);
+    console.error('\x1b[31mErreur de WebSocket détectée :', error);
 });
 client.on('shardError', (error) => {
-    console.error('Erreur de shard détectée :', error);
+    console.error('\x1b[31mErreur de shard détectée :', error);
 });
 client.on('guildMemberAdd', async (member) => {
     userAdd(client, member);
@@ -224,7 +225,7 @@ client.on('threadUpdate', async (oldThread, newThread) => {
             const guildId = newThread.guild.id;
             premiumClose(newThread, guildId, client);
         } catch (error) {
-            console.error('Erreur lors du traitement de threadUpdate (fermeture de thread) :', error);
+            console.error('\x1b[31mErreur lors du traitement de threadUpdate (fermeture de thread) :', error);
         }
     }
 });
@@ -233,7 +234,7 @@ async function loadGuildData(guildPath) {
         const data = await fs.readFile(guildPath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        console.error('Erreur de chargement des données de la guilde:', error);
+        console.error('\x1b[35mErreur de chargement des données de la guilde:', error);
         return {};
     }
 }
@@ -243,7 +244,7 @@ const loadWhitelist = (guildPath) => {
         const parsedData = JSON.parse(data);
         return parsedData.whitelist || [];
     } catch (error) {
-        console.error('Erreur lors du chargement de la whitelist:', error);
+        console.error('\x1b[35mErreur lors du chargement de la whitelist:', error);
         return [];
     }
 };

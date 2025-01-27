@@ -94,13 +94,13 @@ module.exports = {
             }
         }
         try {
-            await interaction.editReply({
+            await interaction.reply({
                 content: '✅ Votre signalement d\'incident a été enregistré.',
                 ephemeral: true
             });
         } catch (error) {
             console.error('Erreur lors de l\'envoi du signalement d\'incident :', error);
-            await interaction.editReply({
+            await interaction.reply({
                 content: '❌ Une erreur est survenue lors de l\'enregistrement de votre incident. Veuillez réessayer plus tard.',
                 ephemeral: true
             });

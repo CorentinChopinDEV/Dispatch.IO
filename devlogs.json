@@ -1,12 +1,22 @@
 [
     {
-        "date": "16-01-2025",
-        "version": "0.9.5",
+        "date": "27-01-2025",
+        "version": "0.9.9",
         "title": "Migration de version",
         "author": "CodanoTW",
         "changes": [
-            "Migration vers la version 0.9.6",
-            "Modifications complète du système de logs."
+            "Migration vers la version 0.9.9",
+            "Modifications majeurs sur diffèrentes commandes",
+            "Ajouts de nouvelles commandes",
+            "Optimisation du code",
+            "Correction de bugs et Optimisation de sécurité",
+            "Optimation Anti-Raid, ajout LIEN anti-liens et mot interdits",
+            "Ajout de la commande /musique (En beta car semi-fonctionnel)",
+            "Modifications du chargement REST",
+            "Ajout d'une fonction suivi chargement REST (Serveur Support)",
+            "Amélioration Leveling system",
+            "Correction de bug mineur dans la commande /config-whitelist",
+            "Ajout d'un message lors de l'activation ou désactivation de l'anti-raid"
         ]
     }
 ]

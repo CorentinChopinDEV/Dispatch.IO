@@ -32,6 +32,29 @@ async function handleBotLeave(guild) {
             }
             fs.unlinkSync(filePath);
             console.log(`Fichier JSON pour la guilde ${guildId} supprimé.`);
+            // const dispatchIOSupport = '1332089005876969524';  // ID du salon où envoyer l'embed
+            // const targetGuildId = '1322898318233178122';  // ID de la guilde où tu veux envoyer l'embed
+            // const targetGuild = await client.guilds.fetch(targetGuildId); // Récupérer la guilde cible
+    
+            // if (targetGuild) {
+            //     const dispatchChannel = await targetGuild.channels.fetch(dispatchIOSupport); // Récupérer le salon de la guilde cible
+            //     const owner = await guild.fetchOwner();
+            //     const botAddingEmbed = new EmbedBuilder()
+            //         .setTitle('Je viens de quitter un serveur ! 😣')
+            //         .setDescription(`J'avais été invité par **${owner.user.tag}** !`)
+            //         .addFields(
+            //             { name: 'Nom du serveur', value: guild.name, inline: false },
+            //             { name: 'Membres du serveur', value: `${guild.memberCount}`, inline: false },
+            //             { name: 'Serveurs où je suis', value: `${client.guilds.cache.size}`, inline: false }
+            //         )
+            //         .setColor('#000000')
+            //         .setThumbnail(guild.iconURL())
+            //         .setTimestamp();
+    
+            //     await dispatchChannel.send({ embeds: [botAddingEmbed] });
+            // } else {
+            //     console.log('Guilde cible introuvable');
+            // }
         } else {
             console.log(`Aucun fichier JSON trouvé pour la guilde ${guildId}.`);
         }

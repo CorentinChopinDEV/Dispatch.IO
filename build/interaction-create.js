@@ -66,7 +66,9 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('noname') &&
                 !interaction.commandName.includes('role-all') &&
                 !interaction.commandName.includes('play') &&
-                !interaction.commandName.includes('rgpd')
+                !interaction.commandName.includes('rgpd') &&
+                !interaction.commandName.includes('owner-restart') &&
+                !interaction.commandName.includes('incident-report')
             );
               
               if (isValidCommand) {

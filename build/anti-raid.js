@@ -1,5 +1,8 @@
 const { Client, GatewayIntentBits, AuditLogEvent, Events, PermissionsBitField } = require('discord.js');
 const fs = require('fs');
+const crypto = require('crypto');
+const path = require('path');
+
 class AntiRaidSystem {
     constructor() {
         this.spamMap = new Map();
@@ -9,6 +12,25 @@ class AntiRaidSystem {
         this.webhookMap = new Map();
         this.inviteMap = new Map();
         this.guildConfigs = new Map();
+        this.linkRegex = /(https?:\/\/[^\s]+)/gi;
+    }
+
+    loadBannedWords() {
+        try {
+            const wordsPath = path.resolve(__dirname, 'word.json'); // Chemin absolu basé sur le fichier actuel
+            if (fs.existsSync(wordsPath)) {
+                const fileContent = fs.readFileSync(wordsPath, 'utf8');
+                const word = JSON.parse(fileContent);
+                const BannedWord = word.word;
+                return BannedWord || [];
+            } else {
+                console.error('Le fichier word.json est introuvable.');
+                return [];
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement des mots interdits:', error);
+            return [];
+        }
     }
 
     loadGuildConfig(guildId) {
@@ -60,7 +82,7 @@ class AntiRaidSystem {
         };
     
         await logChannel.send({
-            embeds: [ {
+            embeds: [{
                 title: `🛡️ ${type.toUpperCase()} - ${content.title || 'Alerte'}`,
                 description: content.description || content,
                 color: colors[severity] || colors.danger,
@@ -68,23 +90,109 @@ class AntiRaidSystem {
                 timestamp: new Date()
             }]
         }).catch(console.error);
-    }    
+    }
 
-    // Anti-Spam
-    handleMessage(message) {
+    hashLink(link) {
+        return crypto.createHash('md5').update(link).digest('hex').substring(0, 8);
+    }
+
+    async handleLink(message) {
+        if (!this.isAntiRaidEnabled(message.guild.id)) return false;
+        if (this.isWhitelisted(message.guild.id, message.author.id)) return false;
+
+        const links = message.content.match(this.linkRegex);
+        if (!links) return false;
+        const hashedContent = message.content.replace(this.linkRegex, (link) => {
+            const hash = this.hashLink(link);
+            return `[Lien Sécurisé: ${hash}]`;
+        });
+
+        try {
+            await message.delete();
+            await message.channel.send({
+                embeds: [{
+                    description: `## Message de ${message.author} modifié par sécurité !\n\`\`${hashedContent}\`\`\n### Les liens sont interdits.🚫`,
+                    color: 0xFF0000
+                }]
+            });
+
+            this.sendLog(message.guild, 'raid', {
+                title: 'Lien Détecté et Modifié',
+                description: `### Un message contenant des liens a été modifié.`,
+                fields: [
+                    { name: 'Auteur', value: `<@${message.author.id}> \`${message.author.id}\``, inline: true },
+                    { name: 'Canal', value: `<#${message.channel.id}>`, inline: false },
+                    { name: 'Message Original', value: message.content.substring(0, 1024) },
+                    { name: 'Message Modifié', value: hashedContent.substring(0, 1024) }
+                ]
+            }, 'danger');
+
+            return true;
+        } catch (error) {
+            console.error('Erreur lors du traitement du lien:', error);
+            return false;
+        }
+    }
+
+    async handleBannedWords(message) {
+        this.bannedWords = this.loadBannedWords();
+        if (!this.isAntiRaidEnabled(message.guild.id)) return false;
+        if (this.isWhitelisted(message.guild.id, message.author.id)) return false;
+
+        const content = message.content.toLowerCase();
+        const foundBannedWords = this.bannedWords.filter(word => 
+            content.includes(word.toLowerCase())
+        );
+
+        if (foundBannedWords.length > 0) {
+            try {
+                await message.delete();
+                await message.author.send({
+                    embeds: [{
+                        title: "⚠️ Message Supprimé",
+                        description: "# Votre message a été supprimé car il contenait du contenu interdit.",
+                        color: 0xFF0000
+                    }]
+                }).catch(() => {});
+
+                this.sendLog(message.guild, 'raid', {
+                    title: 'Mots Interdits Détectés',
+                    description: `### Un message contenant des mots interdits a été supprimé.`,
+                    fields: [
+                        { name: 'Auteur', value: `<@${message.author.id}> \`${message.author.id}\``, inline: false },
+                        { name: 'Canal', value: `<#${message.channel.id}>`, inline: false },
+                        { name: 'Mots Détectés', value: foundBannedWords.join(', ') },
+                        { name: 'Message', value: message.content.substring(0, 1024) }
+                    ]
+                }, 'danger');
+
+                return true;
+            } catch (error) {
+                console.error('Erreur lors du traitement des mots interdits:', error);
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    async handleMessage(message) {
         if (message.author.bot) return;
         if (!this.isAntiRaidEnabled(message.guild.id)) return;
         if (this.isWhitelisted(message.guild.id, message.author.id)) return;
-    
+
+        const hasBannedWords = await this.handleBannedWords(message);
+        if (hasBannedWords) return;
+
+        const hasLinks = await this.handleLink(message);
+        if (hasLinks) return;
+
         const key = `${message.author.id}-${message.guild.id}`;
         const userMessages = this.spamMap.get(key) || [];
         const now = Date.now();
-    
-        // Filter recent messages within the last 5 seconds
         const recentMessages = userMessages.filter(({ timestamp }) => now - timestamp < 5000);
 
-        // If the user is detected as spamming
-        if (recentMessages.length >= 5) { // Adjusted to 5
+        if (recentMessages.length >= 5) {
             message.member.send({
                 embeds: [{
                     title: "⚠️ Avertissement Anti-Raid",
@@ -92,10 +200,10 @@ class AntiRaidSystem {
                     color: 0xff0004,
                 }]
             });
-    
+
             message.member.timeout(86400000, "Anti-Raid: SPAM detection ⚠️").catch(console.error);
             message.channel.bulkDelete(recentMessages.length).catch(console.error);
-    
+
             this.sendLog(message.guild, 'raid', {
                 title: 'Spam détecté',
                 description: `### Utilisateur <@${message.author.id}> a été sanctionné pour spam.`,
@@ -106,16 +214,15 @@ class AntiRaidSystem {
                     { name: 'Raison', value: '*5 messages envoyés en moins de 5 secondes ou contenu similaire détecté.*' }
                 ]
             }, 'danger');
-    
+
             this.spamMap.delete(key);
         } else {
             userMessages.push({ timestamp: now, content: message.content });
             this.spamMap.set(key, userMessages);
         }
     }
-    
-    // Anti Mass Join
-    handleMemberJoin(member) {
+
+    async handleMemberJoin(member) {
         if (!this.isAntiRaidEnabled(member.guild.id)) return;
     
         const now = Date.now();
@@ -126,10 +233,9 @@ class AntiRaidSystem {
         this.joinedMembers.set(member.guild.id, recentJoinsFiltered);
     
         const accountAge = now - member.user.createdTimestamp;
-        const suspiciousAccount = accountAge < 7 * 24 * 60 * 60 * 1000; // Moins de 7 jours
-        const suspiciousFrenchCorp = accountAge < 60 * 24 * 60 * 60 * 1000; // Moins de 60 jours
+        const suspiciousAccount = accountAge < 7 * 24 * 60 * 60 * 1000;
+        const suspiciousFrenchCorp = accountAge < 60 * 24 * 60 * 60 * 1000;
     
-        // ID spécifique pour French Corp
         const frenchCorpGuildId = '1212777500565045258';
     
         if (recentJoinsFiltered.length >= 5 || suspiciousAccount || 
@@ -142,13 +248,11 @@ class AntiRaidSystem {
                             const joinedMember = members.get(join.id);
                             if (joinedMember && !this.isWhitelisted(member.guild.id, joinedMember.id)) {
                                 joinedMember.send({
-                                    embeds: [
-                                        {
-                                            title: "⚠️ Alerts Anti-Raid",
-                                            description: `# Vous êtes suspecté de RAID !!! Vous venez d'être expulsé de ce serveur.`,
-                                            color: 0xff0004, // Couleur rouge pour une alerte urgente
-                                        }
-                                    ]
+                                    embeds: [{
+                                        title: "⚠️ Alerts Anti-Raid",
+                                        description: `# Vous êtes suspecté de RAID !!! Vous venez d'être expulsé de ce serveur.`,
+                                        color: 0xff0004,
+                                    }]
                                 });
                                 joinedMember.kick('Compte créé récemment (moins de 60 jours). La protection du serveur est en mode strict.');
                             }
@@ -168,7 +272,7 @@ class AntiRaidSystem {
                         { name: 'Compte créé le', value: member.user.createdAt.toLocaleDateString(), inline: true },
                         { name: 'Raison', value: 
                             member.guild.id === frenchCorpGuildId && suspiciousFrenchCorp 
-                            ? 'Compte créé récemment, moins de 60 jours (French Corp stricte).' 
+                            ? 'Compte créé récemment, moins de 60 jours (Restriction LSPDFR French Corporation).' 
                             : suspiciousAccount 
                             ? 'Compte créé récemment, moins de 7 jours.' 
                             : 'Plus de 5 joins rapides détectés.'
@@ -177,19 +281,12 @@ class AntiRaidSystem {
                 }, 'danger');
             }
         }
-    }    
+    }
 
-    // Anti Bot Add
     async handleBotAdd(guild, member) {
-        // Vérifie si la protection anti-raid est activée pour ce serveur
         if (!this.isAntiRaidEnabled(guild.id)) return;
-    
-        // Vérifie si le membre ajouté est un bot
         if (!member.user.bot) return;
     
-        console.log('Bot Join');
-    
-        // Tente d'expulser le bot
         await member.kick('Bot non autorisé détecté. ⛔').catch((error) => {
             console.error('Erreur lors de l\'expulsion du bot :', error);
         });
@@ -202,48 +299,27 @@ class AntiRaidSystem {
                 { name: 'ID du Bot', value: member.user.id, inline: true },
                 { name: 'Action', value: 'Bot expulsé' }
             ]
-        }, 'danger'); // Envoie un message dans le canal de log avec l'alerte
+        }, 'danger');
     
-        // Récupère les logs d'audit pour les ajouts de bots
         const auditLogs = await guild.fetchAuditLogs({
-            type: AuditLogEvent.BotAdd, // Spécifie l'événement "Bot ajouté"
-            limit: 1 // Limite à un seul log d'audit
+            type: AuditLogEvent.BotAdd,
+            limit: 1
         }).catch((err) => {
             console.error('Erreur lors de la récupération des logs d\'audit:', err);
             return null;
         });
     
-        if (!auditLogs) {
-            console.log('Aucun log d\'audit trouvé.');
-            return;
-        }
+        if (!auditLogs) return;
     
-        const botLog = auditLogs.entries.first(); // Récupère la première entrée de log
-        if (!botLog) {
-            console.log('Aucun log d\'audit pour le bot ajouté.');
-            return;
-        }
+        const botLog = auditLogs.entries.first();
+        if (!botLog) return;
     
-        // Récupère les informations de l'exécuteur de l'action (celui qui a ajouté le bot)
-        const executor = await guild.members.fetch(botLog.executor.id).catch((err) => {
-            console.error('Erreur lors de la récupération de l\'exécuteur:', err);
-            return null;
-        });
+        const executor = await guild.members.fetch(botLog.executor.id).catch(() => null);
+        if (!executor) return;
     
-        if (!executor) {
-            console.log('Exécuteur non trouvé ou l\'action a été effectuée par un bot ou un système.');
-            return;
-        }
-    
-        console.log(`Executor: ${executor.tag}, Permissions: ${executor.permissions.toArray()}`);
-    
-        // Si l'exécuteur n'a pas les bonnes permissions ou n'est pas whitelisté, expulser le bot
         if (!executor.permissions.has(PermissionsBitField.Flags.Administrator) && 
             !this.isWhitelisted(guild.id, executor.id)) {
     
-            console.log(`Bot ajouté par ${botLog.executor.tag}, expulsion du bot.`);
-    
-            // Envoie un log d'événement sur le raid
             this.sendLog(guild, 'raid', {
                 title: 'Bot Non Autorisé Détecté',
                 description: `### Le bot ${member.user.tag} a été ajouté par ${botLog.executor.tag}, mais il n\'est pas autorisé.`,
@@ -255,11 +331,10 @@ class AntiRaidSystem {
                     { name: 'Permissions de l\'ajouteur', value: executor.permissions.has(PermissionsBitField.Flags.Administrator) ? 'Administrateur' : 'Non Administrateur', inline: true },
                     { name: 'Action', value: 'Bot expulsé' }
                 ]
-            }, 'danger'); // Envoie un message dans le canal de log avec l'alerte
+            }, 'danger');
         }
     }
 
-    // Anti Channel Spam
     async handleChannelCreate(channel) {
         if (!this.isAntiRaidEnabled(channel.guild.id)) return;
 
@@ -269,34 +344,34 @@ class AntiRaidSystem {
 
         const recentChannelsFiltered = recentChannels.filter(timestamp => now - timestamp < 10000);
         this.channelUpdateMap.set(channel.guild.id, recentChannelsFiltered);
+
         const auditLogs = await channel.guild.fetchAuditLogs({
             type: AuditLogEvent.ChannelCreate,
             limit: 1
         });
         const executor = auditLogs.entries.first()?.executor;
+
         if (recentChannelsFiltered.length >= 3) {
             if (executor && !this.isWhitelisted(channel.guild.id, executor.id)) {
-                
                 const member = await channel.guild.members.fetch(executor.id).catch(() => null);
-                console.log('pass here')
+                
                 try {
-                    await member.roles.set([]); // Retirer tous les rôles
-                    console.log(`Rôles retirés pour ${member.user.tag}`);
+                    await member.roles.set([]);
                 } catch (error) {
                     console.error("Erreur lors du retrait des rôles :", error);
                 }
+
                 channel.delete().catch(console.error);
-                const guild = channel.guild;
+                
                 executor.send({
-                    embeds: [
-                        {
-                            title: "⚠️ Alerts création massive de canaux détectée",
-                            description: `## Vous avez créer des salons trop rapidement.`,
-                            color: 0xff0004, // Couleur rouge pour une alerte urgente
-                        }
-                    ]
-                })
-                this.sendLog(guild, 'raid', {
+                    embeds: [{
+                        title: "⚠️ Alerts création massive de canaux détectée",
+                        description: `## Vous avez créer des salons trop rapidement.`,
+                        color: 0xff0004,
+                    }]
+                });
+
+                this.sendLog(channel.guild, 'raid', {
                     title: 'Création massive de canaux détectée',
                     description: `## <@${executor.id}> a créé trop de canaux rapidement.`,
                     fields: [
@@ -305,12 +380,10 @@ class AntiRaidSystem {
                         { name: 'Créé par', value: `<@${executor.id}> \`\`${executor.id}\`\``, inline: true }
                     ]
                 }, 'danger');
-                
             }
         }
     }
 
-    // Anti Mass Ban
     async handleGuildBanAdd(ban) {
         if (!this.isAntiRaidEnabled(ban.guild.id)) return;
 
@@ -333,15 +406,15 @@ class AntiRaidSystem {
                     ban.guild.members.unban(banEntry.target.id, 'Annulation de mass ban')
                         .catch(console.error);
                 });
+
                 member.send({
-                    embeds: [
-                        {
-                            title: "⛔ Trop de ban détecté.",
-                            description: `## Vous avez banni trop de membres rapidement.`,
-                            color: 0xff0004, // Couleur rouge pour une alerte urgente
-                        }
-                    ]
-                })
+                    embeds: [{
+                        title: "⛔ Trop de ban détecté.",
+                        description: `## Vous avez banni trop de membres rapidement.`,
+                        color: 0xff0004,
+                    }]
+                });
+
                 this.sendLog(ban.guild, 'raid', {
                     title: 'Mass Ban Détecté',
                     description: `### <@${executor.id}> a banni trop de membres rapidement.`,
@@ -354,7 +427,6 @@ class AntiRaidSystem {
         }
     }
 
-    // Anti Webhook Spam
     async handleWebhookUpdate(channel) {
         if (!this.isAntiRaidEnabled(channel.guild.id)) return;
 
@@ -378,15 +450,15 @@ class AntiRaidSystem {
                 
                 const member = await channel.guild.members.fetch(executor.id).catch(() => null);
                 member.roles.set([]).catch(console.error);
+
                 member.send({
-                    embeds: [
-                        {
-                            title: "Anti-Raid - Création massive de webhooks détectée. ⛔",
-                            description: `## Vous avez créé trop de webhooks rapidement.`,
-                            color: 0xff0004, // Couleur rouge pour une alerte urgente
-                        }
-                    ]
-                })
+                    embeds: [{
+                        title: "Anti-Raid - Création massive de webhooks détectée. ⛔",
+                        description: `## Vous avez créé trop de webhooks rapidement.`,
+                        color: 0xff0004,
+                    }]
+                });
+
                 this.sendLog(channel.guild, 'raid', {
                     title: 'Anti-Raid - Création massive de webhooks détectée. ⛔',
                     description: `### <@${executor.id}> a créé trop de webhooks rapidement.`,
@@ -398,7 +470,6 @@ class AntiRaidSystem {
         }
     }
 
-    // Anti Mass Invite
     async handleInviteCreate(invite) {
         if (!this.isAntiRaidEnabled(invite.guild.id)) return;
 
@@ -420,15 +491,15 @@ class AntiRaidSystem {
                 });
 
                 member.roles.set([]).catch(console.error);
+
                 member.send({
-                    embeds: [
-                        {
-                            title: "Anti-Raid - Création massive d\'invitations détectée. ⛔",
-                            description: `## Vous avez créé trop d'invitations rapidement.`,
-                            color: 0xff0004, // Couleur rouge pour une alerte urgente
-                        }
-                    ]
-                })
+                    embeds: [{
+                        title: "Anti-Raid - Création massive d'invitations détectée. ⛔",
+                        description: `## Vous avez créé trop d'invitations rapidement.`,
+                        color: 0xff0004,
+                    }]
+                });
+
                 this.sendLog(invite.guild, 'raid', {
                     title: 'Création massive d\'invitations détectée',
                     description: `### <@${member.user.id}> a créé trop d'invitations rapidement.`,
@@ -441,7 +512,6 @@ class AntiRaidSystem {
         }
     }
 
-    // Anti Server Update
     async handleGuildUpdate(oldGuild, newGuild) {
         if (!this.isAntiRaidEnabled(newGuild.id)) return;
 
@@ -452,7 +522,6 @@ class AntiRaidSystem {
 
         if (!auditLogs) return;
         const updateLog = auditLogs.entries.first();
-        
         if (!updateLog) return;
 
         const changes = [];
@@ -476,8 +545,8 @@ class AntiRaidSystem {
 
         if (changes.length > 0) {
             const executor = updateLog.executor;
-            if(this.isWhitelisted(newGuild.id, executor.id) === false){
-                if (criticalChange && !this.isWhitelisted(newGuild.id, executor.id)) {
+            if (!this.isWhitelisted(newGuild.id, executor.id)) {
+                if (criticalChange) {
                     const member = await newGuild.members.fetch(executor.id).catch(() => null);
                     member.roles.set([]).catch(console.error);
                     
@@ -500,7 +569,7 @@ class AntiRaidSystem {
                             name: change.name,
                             value: `${change.old} → ${change.new}`
                         })),
-                        { name: 'Whitelisté', value: this.isWhitelisted(newGuild.id, executor.id) ? 'Oui' : 'Non' }
+                        { name: 'Whitelisté', value: 'Non' }
                     ]
                 }, criticalChange ? 'danger' : 'warning');
             }
@@ -508,46 +577,39 @@ class AntiRaidSystem {
     }
 
     initialize(client) {
-        // Gère les messages créés dans le serveur
         client.on(Events.MessageCreate, (message) => {
             this.handleMessage(message);
+            this.handleLink(message);
+            this.handleBannedWords(message);
         });
-    
-        // Gère l'ajout d'un membre dans le serveur
+
         client.on(Events.GuildMemberAdd, (member) => {
-            this.handleMemberJoin(member);  // Traite le membre rejoignant le serveur
-    
-            // Si le membre est un bot, on applique une logique spécifique pour les bots
+            this.handleMemberJoin(member);
             if (member.user.bot) {
-                this.handleBotAdd(member.guild, member);  // Traite l'ajout d'un bot
+                this.handleBotAdd(member.guild, member);
             }
         });
-    
-        // Gère la création de nouveaux canaux dans le serveur
+
         client.on(Events.ChannelCreate, (channel) => {
-            this.handleChannelCreate(channel);  // Traite la création de canal
+            this.handleChannelCreate(channel);
         });
-    
-        // Gère les ajouts de bannissement dans le serveur
+
         client.on(Events.GuildBanAdd, (ban) => {
-            this.handleGuildBanAdd(ban);  // Traite l'ajout d'un bannissement
+            this.handleGuildBanAdd(ban);
         });
-    
-        // Gère la mise à jour des webhooks dans le serveur
+
         client.on(Events.WebhooksUpdate, (channel) => {
-            this.handleWebhookUpdate(channel);  // Traite la mise à jour des webhooks
+            this.handleWebhookUpdate(channel);
         });
-    
-        // Gère la création des invitations dans le serveur
+
         client.on(Events.InviteCreate, (invite) => {
-            this.handleInviteCreate(invite);  // Traite la création d'une invitation
+            this.handleInviteCreate(invite);
         });
-    
-        // Gère les mises à jour de la guilde
+
         client.on(Events.GuildUpdate, (oldGuild, newGuild) => {
-            this.handleGuildUpdate(oldGuild, newGuild);  // Traite la mise à jour de la guilde
+            this.handleGuildUpdate(oldGuild, newGuild);
         });
-    }    
+    }
 }
 
 module.exports = AntiRaidSystem;
