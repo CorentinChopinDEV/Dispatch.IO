@@ -132,16 +132,16 @@ class LogSystem {
         const config = this.getGuildConfig(guild.id);
         if (!config?.colors?.[type]) {
             const defaultColors = {
-                create: 0x2ecc71,
-                delete: 0xe74c3c,
-                update: 0x3498db,
-                voice: 0x9b59b6,
-                thread: 0xf1c40f,
-                emoji: 0xe91e63,
-                message: 0x1abc9c,
-                member: 0xff9800,
-                role: 0x95a5a6,
-                channel: 0x34495e
+                create: 0xf40076,
+                delete: 0xff0000,
+                update: 0xf40076,
+                voice: 0xf40076,
+                thread: 0xf40076,
+                emoji: 0xf40076,
+                message: 0xf40076,
+                member: 0xf40076,
+                role: 0xff0000,
+                channel: 0xff0000
             };
             return defaultColors[type] || 0x7289da;
         }

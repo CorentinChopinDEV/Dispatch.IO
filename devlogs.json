@@ -16,7 +16,8 @@
             "Ajout d'une fonction suivi chargement REST (Serveur Support)",
             "Amélioration Leveling system",
             "Correction de bug mineur dans la commande /config-whitelist",
-            "Ajout d'un message lors de l'activation ou désactivation de l'anti-raid"
+            "Ajout d'un message lors de l'activation ou désactivation de l'anti-raid",
+            "Ajout d'une commande modération. (Meilleur gestion des commandes)"
         ]
     }
 ]

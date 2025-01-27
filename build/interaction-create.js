@@ -68,7 +68,8 @@ async function interactionCREATE(interaction, client){
                 !interaction.commandName.includes('play') &&
                 !interaction.commandName.includes('rgpd') &&
                 !interaction.commandName.includes('owner-restart') &&
-                !interaction.commandName.includes('incident-report')
+                !interaction.commandName.includes('incident-report') &&
+                !interaction.commandName.includes('modération')
             );
               
               if (isValidCommand) {
